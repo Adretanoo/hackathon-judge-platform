@@ -7,7 +7,9 @@
  * @module server
  */
 
-import Fastify, { type FastifyInstance } from 'fastify';
+import Fastify from 'fastify';
+import { type ZodTypeProvider } from 'fastify-type-provider-zod';
+import { safeValidatorCompiler, safeSerializerCompiler } from './utils/zod-provider-wrapper';
 import { env } from './config';
 import { logger } from './utils/logger';
 
@@ -29,12 +31,9 @@ import { registerRoutes } from './routes';
 /**
  * Builds and configures the Fastify application instance.
  *
- * Separated from `start()` so the same instance can be used in integration
- * tests without actually binding to a port.
- *
  * @returns Configured FastifyInstance (not yet listening).
  */
-export async function buildApp(): Promise<FastifyInstance> {
+export async function buildApp(): Promise<any> {
   const app = Fastify({
     logger: {
       level: env.LOG_LEVEL,
@@ -52,14 +51,10 @@ export async function buildApp(): Promise<FastifyInstance> {
     trustProxy: true,
     requestIdHeader: 'x-request-id',
     requestIdLogLabel: 'requestId',
-    disableRequestLogging: false,
-    ajv: {
-      customOptions: {
-        strict: 'log',
-        keywords: ['kind', 'modifier'],
-      },
-    },
-  });
+  }).withTypeProvider<ZodTypeProvider>();
+
+  app.setValidatorCompiler(safeValidatorCompiler);
+  app.setSerializerCompiler(safeSerializerCompiler);
 
   // ── Security & infrastructure ────────────────────────────────────────────
   await app.register(helmetPlugin);
@@ -91,12 +86,10 @@ export async function buildApp(): Promise<FastifyInstance> {
 
 /**
  * Starts the HTTP server.
- * Handles graceful shutdown on SIGTERM / SIGINT.
  */
 async function start(): Promise<void> {
   const app = await buildApp();
 
-  // ── Graceful shutdown ─────────────────────────────────────────────────────
   const shutdown = async (signal: string) => {
     logger.info({ signal }, '⏳  Received shutdown signal, closing server...');
     try {
@@ -112,12 +105,6 @@ async function start(): Promise<void> {
   process.on('SIGTERM', () => void shutdown('SIGTERM'));
   process.on('SIGINT', () => void shutdown('SIGINT'));
 
-  // ── Unhandled rejection guard ─────────────────────────────────────────────
-  process.on('unhandledRejection', (reason) => {
-    logger.error({ reason }, '🚨  Unhandled promise rejection');
-  });
-
-  // ── Start listening ───────────────────────────────────────────────────────
   try {
     const address = await app.listen({
       port: env.PORT,
@@ -133,8 +120,6 @@ async function start(): Promise<void> {
   }
 }
 
-// ─── Entrypoint ───────────────────────────────────────────────────────────────
 if (require.main === module) {
   void start();
 }
-

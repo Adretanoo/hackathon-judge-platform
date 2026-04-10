@@ -8,6 +8,7 @@ import fp from 'fastify-plugin';
 import type { FastifyInstance } from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
+import { safeJsonSchemaTransform } from '../utils/zod-provider-wrapper';
 import { env } from '../config';
 
 /**
@@ -49,6 +50,7 @@ export default fp(async function swaggerPlugin(app: FastifyInstance) {
         { name: 'Criteria', description: 'Judging criteria configuration' },
         { name: 'Scores', description: 'Score submission and aggregation' },
         { name: 'Leaderboard', description: 'Real-time leaderboard' },
+        { name: 'Teams', description: 'Team management and matching' },
       ],
       components: {
         securitySchemes: {
@@ -62,6 +64,7 @@ export default fp(async function swaggerPlugin(app: FastifyInstance) {
       },
       security: [{ BearerAuth: [] }],
     },
+    transform: safeJsonSchemaTransform,
   });
 
   await app.register(swaggerUi, {

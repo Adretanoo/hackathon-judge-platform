@@ -71,8 +71,7 @@ export class AuthService {
       where: { email: body.email },
       include: {
         roles: {
-          where: { hackathonId: null },
-          include: { role: true }
+          where: { hackathonId: null }
         }
       }
     });
@@ -93,7 +92,7 @@ export class AuthService {
       // return { requires2fa: true };
     }
 
-    const primaryRole = user.roles.length > 0 ? user.roles[0]?.role.name : RoleName.PARTICIPANT;
+    const primaryRole = user.roles.length > 0 ? user.roles[0]?.roleName : RoleName.PARTICIPANT;
 
     const tokens = await this.generateAndStoreTokens(user.id, user.email, primaryRole as RoleName, ipAddress, deviceInfo);
 
@@ -124,7 +123,7 @@ export class AuthService {
       where: { tokenHash },
       include: { user: {
         include: {
-          roles: { where: { hackathonId: null }, include: { role: true } }
+          roles: { where: { hackathonId: null } }
         }
       }}
     });
@@ -145,7 +144,7 @@ export class AuthService {
       data: { revokedAt: new Date() }
     });
 
-    const primaryRole = user.roles.length > 0 ? user.roles[0]?.role.name : RoleName.PARTICIPANT;
+    const primaryRole = user.roles.length > 0 ? user.roles[0]?.roleName : RoleName.PARTICIPANT;
 
     return await this.generateAndStoreTokens(user.id, user.email, primaryRole as RoleName, ipAddress, deviceInfo);
   }

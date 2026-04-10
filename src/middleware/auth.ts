@@ -78,9 +78,7 @@ export function hasRole(
         where: {
           userId: user.sub,
           hackathonId: hackathonId,
-          role: {
-            name: { in: allowedRoles }
-          }
+          roleName: { in: allowedRoles }
         }
       });
       

@@ -84,15 +84,10 @@ export async function createTestUser(app: FastifyInstance, data: {
 
   // Ensure role is persisted globally if not Participant
   if (role !== RoleName.PARTICIPANT) {
-    const roleRecord = await app.prisma.role.findUnique({ where: { name: role } });
-    if (!roleRecord) {
-      throw new Error(`Role ${role} not found in DB. Make sure you seeded the database.`);
-    }
-    
     const existingRole = await app.prisma.userRole.findFirst({
       where: {
         userId: userData.id,
-        roleId: roleRecord.id,
+        roleName: role,
         hackathonId: null,
       }
     });
@@ -101,7 +96,7 @@ export async function createTestUser(app: FastifyInstance, data: {
       await app.prisma.userRole.create({
         data: {
           userId: userData.id,
-          roleId: roleRecord.id,
+          roleName: role,
           hackathonId: null,
         }
       });

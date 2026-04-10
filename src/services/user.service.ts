@@ -4,7 +4,7 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import { NotFoundError, BadRequestError } from '../utils/errors';
+import { NotFoundError } from '../utils/errors';
 import type { ListUsersQuery, UpdateUserAdminBody, AssignRoleBody } from '../schemas/user.schema';
 
 export class UserService {
@@ -36,9 +36,7 @@ export class UserService {
       where.AND.push({
         roles: {
           some: {
-            role: {
-              name: role,
-            },
+            roleName: role,
           },
         },
       });
@@ -64,7 +62,6 @@ export class UserService {
         include: {
           roles: {
             include: {
-              role: true,
               hackathon: {
                 select: { id: true, title: true },
               },
@@ -91,7 +88,6 @@ export class UserService {
       include: {
         roles: {
           include: {
-            role: true,
             hackathon: {
               select: { id: true, title: true },
             },
@@ -122,7 +118,6 @@ export class UserService {
       include: {
         roles: {
           include: {
-            role: true,
             hackathon: {
               select: { id: true, title: true },
             },
@@ -156,20 +151,14 @@ export class UserService {
     // 1. Verify user exists
     await this.getUserById(userId);
 
-    // 2. Resolve Role ID
-    const role = await this.prisma.role.findUnique({
-      where: { name: roleName },
-    });
+    // 2. Already simplified: roleName is passed directly
 
-    if (!role) {
-      throw new BadRequestError(`Role ${roleName} does not exist in the platform definitions.`);
-    }
 
     // 3. Check if this assignment already exists
     const existingAssignment = await this.prisma.userRole.findFirst({
       where: {
         userId,
-        roleId: role.id,
+        roleName: roleName as any,
         hackathonId: hackathonId ?? null,
       },
     });
@@ -182,7 +171,7 @@ export class UserService {
     await this.prisma.userRole.create({
       data: {
         userId,
-        roleId: role.id,
+        roleName: roleName as any,
         hackathonId: hackathonId ?? null,
       },
     });
@@ -195,13 +184,14 @@ export class UserService {
    */
   private formatUser(user: any) {
     const { passwordHash, ...safeUser } = user;
+    const roles = (user as any).roles || [];
     return {
       ...safeUser,
-      roles: user.roles?.map((ur: any) => ({
-        role: ur.role.name,
+      roles: roles.map((ur: any) => ({
+        role: ur.roleName,
         hackathonId: ur.hackathonId ?? undefined,
         hackathonTitle: ur.hackathon?.title,
-      })) || [],
+      })),
     };
   }
 }

@@ -144,10 +144,10 @@ describe('User Management Module', () => {
       // Verify promotion in DB
       const userWithRoles = await app.prisma.user.findUnique({
         where: { id: targetUser.id },
-        include: { roles: { include: { role: true } } }
+        include: { roles: true }
       });
       
-      const hasJudgeRole = userWithRoles?.roles.some(ur => ur.role.name === RoleName.JUDGE);
+      const hasJudgeRole = userWithRoles?.roles.some((ur: any) => ur.roleName === RoleName.JUDGE);
       expect(hasJudgeRole).toBe(true);
     });
   });

@@ -27,20 +27,11 @@ export class HackathonService {
         },
       });
 
-      // 2. Resolve ORGANIZER Role ID
-      const organizerRole = await tx.role.findUnique({
-        where: { name: RoleName.ORGANIZER }
-      });
-
-      if (!organizerRole) {
-        throw new Error('System Role ORGANIZER does not exist. Did you run the seeder?');
-      }
-
-      // 3. Grant the creator contextual organizer privileges
+      // 2. Grant the creator contextual organizer privileges
       await tx.userRole.create({
         data: {
           userId: organizerId,
-          roleId: organizerRole.id,
+          roleName: RoleName.ORGANIZER,
           hackathonId: hackathon.id,
         }
       });

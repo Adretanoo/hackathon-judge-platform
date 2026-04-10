@@ -12,21 +12,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting database seeding...');
 
-  // 1. Seed Global Roles
-  const roles = Object.values(RoleName);
-  for (const role of roles) {
-    await prisma.role.upsert({
-      where: { name: role },
-      update: {},
-      create: {
-        name: role,
-        description: `Platform role: ${role}`,
-      },
-    });
-  }
-  console.log('✅ Roles seeded.');
-
-  // 2. Seed default organizer
+  // 1. Seed default organizer
   const organizerEmail = 'admin@platform.com';
   let organizer = await prisma.user.findUnique({ where: { email: organizerEmail } });
 
@@ -41,21 +27,18 @@ async function main() {
       },
     });
     
-    // Assign global admin and organizer global roles
-    const adminRole = await prisma.role.findUnique({ where: { name: RoleName.GLOBAL_ADMIN } });
-    const orgRole = await prisma.role.findUnique({ where: { name: RoleName.ORGANIZER } });
-    
+    // Assign global admin and organizer global roles directly via enum
     await prisma.userRole.createMany({
       data: [
-        { userId: organizer.id, roleId: adminRole!.id },
-        { userId: organizer.id, roleId: orgRole!.id },
+        { userId: organizer.id, roleName: RoleName.GLOBAL_ADMIN },
+        { userId: organizer.id, roleName: RoleName.ORGANIZER },
       ],
       skipDuplicates: true
     });
     console.log('✅ Global admin created (admin@platform.com / Admin@123!).');
   }
 
-  // 3. Seed sample Hackathon
+  // 2. Seed sample Hackathon
   const sampleHackathon = await prisma.hackathon.findFirst({
     where: { title: 'Global Innovators Hack 2026' }
   });
@@ -97,11 +80,10 @@ async function main() {
       }
     });
 
-    const orgRole = await prisma.role.findUnique({ where: { name: RoleName.ORGANIZER } });
     await prisma.userRole.create({
       data: {
         userId: organizer.id,
-        roleId: orgRole!.id,
+        roleName: RoleName.ORGANIZER,
         hackathonId: hackathon.id
       }
     });

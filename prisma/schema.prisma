@@ -20,6 +20,7 @@ model User {
   skills               Json                 @default("[]")
   isVerified           Boolean              @default(false) @map("is_verified")
   isActive             Boolean              @default(true) @map("is_active")
+  isLookingForTeam     Boolean              @default(false) @map("is_looking_for_team")
   createdAt            DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt            DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
   organizedHackathons  Hackathon[]          @relation("HackathonOrganizer")
@@ -86,25 +87,21 @@ model Role {
   description String?
   createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
-  userRoles   UserRole[]
 
   @@map("roles")
 }
 
-/// Assignment of a role to a user, optionally scoped to a hackathon
 model UserRole {
   id          String     @id @default(cuid())
   userId      String     @map("user_id")
-  roleId      String     @map("role_id")
-  /// NULL → global role; non-null → hackathon-scoped role
+  roleName    RoleName   @map("role_name")
   hackathonId String?    @map("hackathon_id")
   createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
   hackathon   Hackathon? @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
-  role        Role       @relation(fields: [roleId], references: [id])
   user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, roleId, hackathonId])
+  @@unique([userId, roleName, hackathonId])
   @@index([userId])
   @@index([hackathonId])
   @@map("user_roles")
@@ -312,19 +309,21 @@ model TeamInvite {
   id         String       @id @default(cuid())
   teamId     String       @map("team_id")
   senderId   String       @map("sender_id")
-  receiverId String       @map("receiver_id")
+  receiverId String?      @map("receiver_id")
+  token      String       @unique
   status     InviteStatus @default(PENDING)
+  maxUses    Int          @default(1) @map("max_uses")
+  usesCount  Int          @default(0) @map("uses_count")
   message    String?
   expiresAt  DateTime     @map("expires_at") @db.Timestamptz(6)
   createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt  DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
-  receiver   User         @relation("InviteReceiver", fields: [receiverId], references: [id])
+  receiver   User?        @relation("InviteReceiver", fields: [receiverId], references: [id])
   sender     User         @relation("InviteSender", fields: [senderId], references: [id])
   team       Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
-  @@unique([teamId, receiverId])
   @@index([teamId])
-  @@index([receiverId])
+  @@index([token])
   @@map("team_invites")
 }
 
