@@ -1,0 +1,1 @@
+const Fastify = require('fastify'); const app = Fastify(); app.register(require('@fastify/swagger'), { openapi: { info: { title: 'T', version: '1' } } }); app.register(require('./src/routes/hackathon.routes').hackathonRoutes); app.ready().then(() => { console.log(app.swagger()); process.exit(0); }).catch(e => { console.error(e); process.exit(1); });

@@ -27,7 +27,7 @@ const errorSchema = {
       properties: {
         code: { type: 'string' },
         message: { type: 'string' },
-        details: {},
+        details: { type: 'object', additionalProperties: true },
       },
     },
   },

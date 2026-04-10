@@ -6,6 +6,7 @@
 import type { FastifyInstance } from 'fastify';
 import { healthRoutes } from './health.routes';
 import { authRoutes } from './auth.routes';
+import { hackathonRoutes } from './hackathon.routes';
 import { env } from '../config';
 
 /**
@@ -24,7 +25,7 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
       await api.register(authRoutes, { prefix: '/auth' });
 
       // Phase 2 – uncomment as you implement each module:
-      // await api.register(hackathonRoutes, { prefix: '/hackathons' });
+      await api.register(hackathonRoutes, { prefix: '/hackathons' });
       // await api.register(projectRoutes,   { prefix: '/projects' });
       // await api.register(criteriaRoutes,  { prefix: '/criteria' });
       // await api.register(scoreRoutes,     { prefix: '/scores' });
