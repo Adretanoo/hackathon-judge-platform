@@ -1,0 +1,166 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  JUDGE
+  PARTICIPANT
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BANNED
+}
+
+enum HackathonStatus {
+  DRAFT
+  REGISTRATION_OPEN
+  IN_PROGRESS
+  JUDGING
+  COMPLETED
+  ARCHIVED
+}
+
+enum ProjectStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  SCORED
+  DISQUALIFIED
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id           String     @id @default(uuid())
+  name         String
+  email        String     @unique
+  passwordHash String     @map("password_hash")
+  role         UserRole   @default(PARTICIPANT)
+  status       UserStatus @default(ACTIVE)
+  avatarUrl    String?    @map("avatar_url")
+  bio          String?
+
+  // Relations
+  organizedHackathons Hackathon[]      @relation("HackathonOrganizer")
+  judgeAssignments    JudgeAssignment[]
+  projects            Project[]        @relation("ProjectOwner")
+  scores              Score[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt     @map("updated_at")
+
+  @@map("users")
+}
+
+model Hackathon {
+  id          String          @id @default(uuid())
+  title       String
+  description String?
+  status      HackathonStatus @default(DRAFT)
+  startDate   DateTime        @map("start_date")
+  endDate     DateTime        @map("end_date")
+  maxTeamSize Int             @default(4) @map("max_team_size")
+  maxProjects Int?            @map("max_projects")
+  isPublic    Boolean         @default(true) @map("is_public")
+  bannerUrl   String?         @map("banner_url")
+
+  // Organizer
+  organizerId String @map("organizer_id")
+  organizer   User   @relation("HackathonOrganizer", fields: [organizerId], references: [id])
+
+  // Relations
+  judgeAssignments JudgeAssignment[]
+  projects         Project[]
+  criteria         Criteria[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt     @map("updated_at")
+
+  @@map("hackathons")
+}
+
+model JudgeAssignment {
+  id          String @id @default(uuid())
+  hackathonId String @map("hackathon_id")
+  judgeId     String @map("judge_id")
+
+  hackathon Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  judge     User      @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+
+  assignedAt DateTime @default(now()) @map("assigned_at")
+
+  @@unique([hackathonId, judgeId])
+  @@map("judge_assignments")
+}
+
+model Project {
+  id          String        @id @default(uuid())
+  hackathonId String        @map("hackathon_id")
+  ownerId     String        @map("owner_id")
+  title       String
+  description String?
+  repoUrl     String?       @map("repo_url")
+  demoUrl     String?       @map("demo_url")
+  techStack   String[]      @map("tech_stack")
+  teamName    String?       @map("team_name")
+  status      ProjectStatus @default(DRAFT)
+
+  hackathon Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  owner     User      @relation("ProjectOwner", fields: [ownerId], references: [id])
+  scores    Score[]
+
+  submittedAt DateTime? @map("submitted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt     @map("updated_at")
+
+  @@map("projects")
+}
+
+model Criteria {
+  id          String  @id @default(uuid())
+  hackathonId String  @map("hackathon_id")
+  name        String
+  description String?
+  maxScore    Float   @default(10) @map("max_score")
+  weight      Float   @default(1)
+
+  hackathon Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  scores    Score[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt     @map("updated_at")
+
+  @@map("criteria")
+}
+
+model Score {
+  id         String  @id @default(uuid())
+  projectId  String  @map("project_id")
+  judgeId    String  @map("judge_id")
+  criteriaId String  @map("criteria_id")
+  value      Float
+  comment    String?
+
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  judge    User     @relation(fields: [judgeId], references: [id])
+  criteria Criteria @relation(fields: [criteriaId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt     @map("updated_at")
+
+  @@unique([projectId, judgeId, criteriaId])
+  @@map("scores")
+}

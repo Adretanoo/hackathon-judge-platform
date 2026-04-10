@@ -1,0 +1,30 @@
+{
+  "preset": "ts-jest",
+  "testEnvironment": "node",
+  "roots": ["<rootDir>/tests"],
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^@config/(.*)$": "<rootDir>/src/config/$1",
+    "^@plugins/(.*)$": "<rootDir>/src/plugins/$1",
+    "^@routes/(.*)$": "<rootDir>/src/routes/$1",
+    "^@controllers/(.*)$": "<rootDir>/src/controllers/$1",
+    "^@services/(.*)$": "<rootDir>/src/services/$1",
+    "^@schemas/(.*)$": "<rootDir>/src/schemas/$1",
+    "^@utils/(.*)$": "<rootDir>/src/utils/$1",
+    "^@middleware/(.*)$": "<rootDir>/src/middleware/$1",
+    "^@types/(.*)$": "<rootDir>/src/types/$1"
+  },
+  "collectCoverageFrom": [
+    "src/**/*.ts",
+    "!src/**/*.d.ts",
+    "!src/server.ts"
+  ],
+  "coverageDirectory": "coverage",
+  "coverageReporters": ["text", "lcov"],
+  "testTimeout": 30000,
+  "globals": {
+    "ts-jest": {
+      "tsconfig": "tsconfig.json"
+    }
+  }
+}
