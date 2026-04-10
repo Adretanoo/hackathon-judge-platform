@@ -62,6 +62,16 @@ export const createAwardSchema = z.object({
 
 export const updateAwardSchema = createAwardSchema.partial();
 
+// ─── Judge & Participant ──────────────────────────────────────────────────
+
+export const assignJudgeSchema = z.object({
+  userId: z.string().cuid(),
+  trackId: z.string().cuid().optional(),
+  /** When true, the judge is assigned even if mentoring conflicts are detected.
+   *  Conflict records will still be auto-created but will not block the assignment. */
+  allowConflictOverride: z.boolean().default(false),
+});
+
 // ─── Inferred Types ─────────────────────────────────────────────────────────
 
 export type CreateHackathonBody = z.infer<typeof createHackathonSchema>;
@@ -76,3 +86,5 @@ export type UpdateTrackBody = z.infer<typeof updateTrackSchema>;
 
 export type CreateAwardBody = z.infer<typeof createAwardSchema>;
 export type UpdateAwardBody = z.infer<typeof updateAwardSchema>;
+
+export type AssignJudgeBody = z.infer<typeof assignJudgeSchema>;

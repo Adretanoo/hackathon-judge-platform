@@ -199,4 +199,152 @@ export class HackathonService {
     await this.prisma.award.delete({ where: { id: awardId } });
     return { success: true };
   }
+
+  // ─── Participants & Judges ───────────────────────────────────────────────
+
+  async registerParticipant(hackathonId: string, userId: string) {
+    const hackathon = await this.getHackathonById(hackathonId);
+    
+    // Determine if registration is still open
+    if (hackathon.status !== HackathonStatus.REGISTRATION_OPEN) {
+      throw new BadRequestError('Registration is not open for this hackathon');
+    }
+    if (hackathon.registrationDeadline && new Date() > hackathon.registrationDeadline) {
+      throw new BadRequestError('Registration deadline has passed');
+    }
+
+    // Assign Role (ignores if already Participant due to potential unique constraint logic if implemented, but we just upsert/create)
+    const existingRole = await this.prisma.userRole.findUnique({
+      where: { userId_roleName_hackathonId: { userId, roleName: RoleName.PARTICIPANT, hackathonId } }
+    });
+
+    if (existingRole) {
+      throw new BadRequestError('You are already registered as a participant.');
+    }
+
+    await this.prisma.userRole.create({
+      data: {
+        userId,
+        hackathonId,
+        roleName: RoleName.PARTICIPANT
+      }
+    });
+
+    return { message: 'Successfully registered for hackathon' };
+  }
+
+  async listParticipants(hackathonId: string) {
+    const participants = await this.prisma.userRole.findMany({
+      where: { hackathonId, roleName: RoleName.PARTICIPANT },
+      include: {
+        user: { select: { id: true, username: true, fullName: true, avatarUrl: true, skills: true } }
+      }
+    });
+
+    return participants.map(p => p.user);
+  }
+
+  async assignJudge(hackathonId: string, data: { userId: string, trackId?: string }) {
+    await this.getHackathonById(hackathonId);
+
+    // 1. Conflict Scan
+    // Check if this judge has mentored any team inside this hackathon
+    const mentorSlots = await this.prisma.mentorSlot.findMany({
+      where: {
+        availability: { mentorId: data.userId, hackathonId },
+        teamId: { not: null }
+      },
+      select: { teamId: true }
+    });
+
+    const uniqueMentoredTeamIds = [...new Set(mentorSlots.map(s => s.teamId as string))];
+    const conflictsCreated: import('@prisma/client').JudgeConflict[] = [];
+
+    // Transaction for assigning judge safely
+    await this.prisma.$transaction(async (tx) => {
+      // Create JudgeRole generic for the hackathon
+      await tx.userRole.upsert({
+        where: { userId_roleName_hackathonId: { userId: data.userId, roleName: RoleName.JUDGE, hackathonId } },
+        update: {},
+        create: { userId: data.userId, roleName: RoleName.JUDGE, hackathonId }
+      });
+
+      const existingAssignment = await tx.judgeAssignment.findFirst({
+        where: { judgeId: data.userId, hackathonId, trackId: data.trackId ?? null }
+      });
+
+      if (!existingAssignment) {
+        await tx.judgeAssignment.create({
+          data: {
+            judgeId: data.userId,
+            hackathonId,
+            trackId: data.trackId
+          }
+        });
+      }
+
+      // Automatically create conflicts for previously mentored teams
+      for (const teamId of uniqueMentoredTeamIds) {
+        const existingConf = await tx.judgeConflict.findUnique({
+          where: { judgeId_teamId: { judgeId: data.userId, teamId } }
+        });
+        if (!existingConf) {
+          const conf = await tx.judgeConflict.create({
+            data: {
+              judgeId: data.userId,
+              teamId,
+              type: 'MENTORED_TEAM',
+              reason: 'Automatically detected: Judge mentored this team during the hackathon.'
+            }
+          });
+          conflictsCreated.push(conf);
+        }
+      }
+    });
+
+    if (conflictsCreated.length > 0) {
+      return {
+        status: 'warning',
+        message: 'Judge has mentoring history with one or more teams.',
+        conflictsCreated,
+        recommendation: 'You can override the conflict manually.'
+      };
+    }
+
+    return {
+      status: 'success',
+      message: 'Judge assigned successfully'
+    };
+  }
+
+  async removeJudge(hackathonId: string, userId: string) {
+    // Delete all current judge assignments for this hackathon
+    await this.prisma.judgeAssignment.deleteMany({
+      where: { hackathonId, judgeId: userId }
+    });
+
+    // We can also remove the user role if there are no assignments left
+    const remainingAssignments = await this.prisma.judgeAssignment.count({
+      where: { hackathonId, judgeId: userId }
+    });
+
+    if (remainingAssignments === 0) {
+      await this.prisma.userRole.deleteMany({
+        where: { userId, hackathonId, roleName: RoleName.JUDGE }
+      });
+    }
+
+    return { success: true };
+  }
+
+  async listJudges(hackathonId: string) {
+    // Enrich with judge user info; JudgeAssignment does not have a direct track relation
+    // but trackId is stored. Fetch track separately if needed.
+    return this.prisma.judgeAssignment.findMany({
+      where: { hackathonId },
+      include: {
+        judge: { select: { id: true, username: true, fullName: true, avatarUrl: true } },
+      }
+    });
+  }
 }

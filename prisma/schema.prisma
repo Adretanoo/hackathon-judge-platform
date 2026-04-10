@@ -458,15 +458,19 @@ model JudgeAssignment {
 
 /// Conflict of interest declaration between a judge and a team
 model JudgeConflict {
-  id        String       @id @default(cuid())
-  judgeId   String       @map("judge_id")
-  teamId    String       @map("team_id")
-  type      ConflictType
-  comment   String?
-  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
-  judge     User         @relation(fields: [judgeId], references: [id], onDelete: Cascade)
-  team      Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  id              String       @id @default(cuid())
+  judgeId         String       @map("judge_id")
+  teamId          String       @map("team_id")
+  type            ConflictType
+  reason          String?      @db.Text
+  detectedAt      DateTime     @default(now()) @map("detected_at") @db.Timestamptz(6)
+  overridden      Boolean      @default(false)
+  overrideReason  String?      @map("override_reason") @db.Text
+  overriddenBy    String?      @map("overridden_by")
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  judge           User         @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  team            Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([judgeId, teamId])
   @@index([judgeId])
@@ -552,6 +556,8 @@ enum ConflictType {
   TEAM_MEMBER
   SUPERVISOR
   PERSONAL
+  MENTORED_TEAM
+  RELATIVE
   OTHER
 }
 

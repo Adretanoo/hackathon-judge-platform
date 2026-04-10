@@ -27,7 +27,7 @@ export class ScoreService {
       where: { judgeId_teamId: { judgeId, teamId: project.teamId } }
     });
 
-    if (conflict) {
+    if (conflict && !conflict.overridden) {
       throw new ForbiddenError('You have a declared conflict of interest with this team');
     }
 

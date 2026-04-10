@@ -21,6 +21,11 @@ import {
   createAwardHandler,
   updateAwardHandler,
   deleteAwardHandler,
+  registerParticipantHandler,
+  listParticipantsHandler,
+  assignJudgeHandler,
+  removeJudgeHandler,
+  listJudgesHandler,
 } from '../controllers/hackathon.controller';
 import {
   createCriteriaHandler,
@@ -36,6 +41,7 @@ import {
   updateTrackSchema,
   createAwardSchema,
   updateAwardSchema,
+  assignJudgeSchema,
 } from '../schemas/hackathon.schema';
 import { createCriteriaSchema } from '../schemas/criteria.schema';
 
@@ -369,5 +375,92 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
       },
     },
     getCriteriaForHackathonHandler as any
+  );
+
+  // ─── Participants & Judges ───────────────────────────────────────────────
+
+  app.post(
+    '/:id/register',
+    {
+      schema: {
+        tags: ['Hackathons', 'Participants'],
+        summary: 'Register as a participant',
+        security: [{ BearerAuth: [] }],
+        response: { 200: genericSuccessSchema, 400: errorSchema },
+      },
+      preHandler: [app.authenticate],
+    },
+    registerParticipantHandler as any
+  );
+
+  app.get(
+    '/:id/participants',
+    {
+      schema: {
+        tags: ['Hackathons', 'Participants'],
+        summary: 'List all participants',
+        security: [{ BearerAuth: [] }],
+        response: { 200: genericSuccessSchema },
+      },
+      preHandler: [
+        app.authenticate,
+        hasRole([RoleName.ORGANIZER, RoleName.GLOBAL_ADMIN], { context: 'hackathon', paramName: 'id' })
+      ],
+    },
+    listParticipantsHandler as any
+  );
+
+  app.post(
+    '/:id/judges/assign',
+    {
+      schema: {
+        tags: ['Hackathons', 'Judges'],
+        summary: 'Assign a judge to a hackathon or track',
+        security: [{ BearerAuth: [] }],
+        response: { 201: genericSuccessSchema, 400: errorSchema, 409: errorSchema },
+      },
+      preHandler: [
+        app.authenticate,
+        hasRole([RoleName.ORGANIZER, RoleName.GLOBAL_ADMIN], { context: 'hackathon', paramName: 'id' })
+      ],
+    },
+    (req, reply) => {
+      req.body = assignJudgeSchema.parse(req.body);
+      return assignJudgeHandler(req as any, reply);
+    }
+  );
+
+  app.delete(
+    '/:id/judges/:userId',
+    {
+      schema: {
+        tags: ['Hackathons', 'Judges'],
+        summary: 'Remove a judge from a hackathon',
+        security: [{ BearerAuth: [] }],
+        response: { 200: genericSuccessSchema },
+      },
+      preHandler: [
+        app.authenticate,
+        hasRole([RoleName.ORGANIZER, RoleName.GLOBAL_ADMIN], { context: 'hackathon', paramName: 'id' })
+      ],
+    },
+    removeJudgeHandler as any
+  );
+
+  app.get(
+    '/:id/judges',
+    {
+      schema: {
+        tags: ['Hackathons', 'Judges'],
+        summary: 'List judges for a hackathon',
+        security: [{ BearerAuth: [] }],
+        response: { 200: genericSuccessSchema },
+      },
+      preHandler: [
+        app.authenticate,
+        hasRole([RoleName.ORGANIZER, RoleName.GLOBAL_ADMIN], { context: 'hackathon', paramName: 'id' })
+      ],
+    },
+    listJudgesHandler as any
   );
 }

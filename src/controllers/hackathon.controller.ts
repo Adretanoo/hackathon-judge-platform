@@ -5,11 +5,12 @@
 
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { HackathonService } from '../services/hackathon.service';
+import { JudgeService } from '../services/judge.service';
 import { successResponse } from '../utils/response';
 import type { 
   CreateHackathonBody, UpdateHackathonBody, ChangeHackathonStatusBody,
   CreateStageBody, UpdateStageBody, CreateTrackBody, UpdateTrackBody,
-  CreateAwardBody, UpdateAwardBody
+  CreateAwardBody, UpdateAwardBody, AssignJudgeBody
 } from '../schemas/hackathon.schema';
 import type { JwtPayload } from '../types';
 
@@ -144,5 +145,60 @@ export async function deleteAwardHandler(
 ) {
   const service = new HackathonService(request.server.prisma);
   const result = await service.deleteAward(request.params.id, request.params.awardId);
+  return reply.status(200).send(successResponse(result));
+}
+
+// ─── Participants & Judges ───────────────────────────────────────────────
+
+export async function registerParticipantHandler(
+  request: FastifyRequest<{ Params: { id: string } }>,
+  reply: FastifyReply,
+) {
+  const service = new HackathonService(request.server.prisma);
+  const user = request.user as JwtPayload;
+  const result = await service.registerParticipant(request.params.id, user.sub);
+  return reply.status(200).send(successResponse(result));
+}
+
+export async function listParticipantsHandler(
+  request: FastifyRequest<{ Params: { id: string } }>,
+  reply: FastifyReply,
+) {
+  const service = new HackathonService(request.server.prisma);
+  const result = await service.listParticipants(request.params.id);
+  return reply.status(200).send(successResponse(result));
+}
+
+export async function assignJudgeHandler(
+  request: FastifyRequest<{ Params: { id: string }; Body: AssignJudgeBody }>,
+  reply: FastifyReply,
+) {
+  const service = new JudgeService(request.server.prisma);
+  const result = await service.assignJudge({
+    hackathonId: request.params.id,
+    userId: request.body.userId,
+    trackId: request.body.trackId,
+    allowConflictOverride: request.body.allowConflictOverride,
+  });
+
+  const statusCode = result.status === 'warning' ? 201 : 201;
+  return reply.status(statusCode).send(result);
+}
+
+export async function removeJudgeHandler(
+  request: FastifyRequest<{ Params: { id: string; userId: string } }>,
+  reply: FastifyReply,
+) {
+  const service = new JudgeService(request.server.prisma);
+  const result = await service.removeJudge(request.params.id, request.params.userId);
+  return reply.status(200).send(successResponse(result));
+}
+
+export async function listJudgesHandler(
+  request: FastifyRequest<{ Params: { id: string } }>,
+  reply: FastifyReply,
+) {
+  const service = new JudgeService(request.server.prisma);
+  const result = await service.listJudges(request.params.id);
   return reply.status(200).send(successResponse(result));
 }
