@@ -183,4 +183,28 @@ export class ScoreService {
       scores: enrichedScores,
     };
   }
+
+  /**
+   * Get judge's scoring statistics (mean and stdDev) for Z-Score normalization
+   */
+  async getJudgeStats(judgeId: string) {
+    const judgeTotalScores = await this.app.prisma.score.findMany({
+      where: { judgeId },
+    });
+
+    if (judgeTotalScores.length === 0) {
+      return { mean: 0, stdDev: 1, count: 0 };
+    }
+
+    if (judgeTotalScores.length === 1) {
+      return { mean: Number(judgeTotalScores[0].scoreValue), stdDev: 1, count: 1 };
+    }
+
+    const values = judgeTotalScores.map(s => Number(s.scoreValue));
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (values.length - 1);
+    const stdDev = Math.sqrt(variance) || 1;
+
+    return { mean, stdDev, count: values.length };
+  }
 }

@@ -37,6 +37,7 @@ export class CriteriaService {
         description: data.description,
         weight: data.weight,
         maxScore: data.maxScore,
+        orderIndex: data.orderIndex,
       },
     });
   }
@@ -48,6 +49,10 @@ export class CriteriaService {
     return await this.app.prisma.criteria.findMany({
       where: { track: { hackathonId } },
       include: { track: { select: { name: true } } },
+      orderBy: [
+        { trackId: 'asc' },
+        { orderIndex: 'asc' },
+      ],
     });
   }
 

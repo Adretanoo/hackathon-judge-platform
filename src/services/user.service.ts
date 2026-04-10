@@ -148,33 +148,29 @@ export class UserService {
   async assignRole(userId: string, data: AssignRoleBody) {
     const { role: roleName, hackathonId } = data;
 
-    // 1. Verify user exists
+    // Verify user exists
     await this.getUserById(userId);
 
-    // 2. Already simplified: roleName is passed directly
-
-
-    // 3. Check if this assignment already exists
-    const existingAssignment = await this.prisma.userRole.findFirst({
-      where: {
-        userId,
-        roleName: roleName as any,
-        hackathonId: hackathonId ?? null,
-      },
-    });
-
-    if (existingAssignment) {
-      return { message: 'Role already assigned to this user in this context' };
+    if (hackathonId) {
+      // Hackathon-scoped: skip duplicates
+      const existing = await this.prisma.userRole.findFirst({
+        where: { userId, roleName: roleName as any, hackathonId },
+      });
+      if (existing) {
+        return { message: 'Role already assigned in this hackathon context' };
+      }
+      await this.prisma.userRole.create({
+        data: { userId, roleName: roleName as any, hackathonId },
+      });
+    } else {
+      // Global role: REPLACE existing global roles so only one global role exists
+      await this.prisma.userRole.deleteMany({
+        where: { userId, hackathonId: null },
+      });
+      await this.prisma.userRole.create({
+        data: { userId, roleName: roleName as any, hackathonId: null },
+      });
     }
-
-    // 4. Create new UserRole
-    await this.prisma.userRole.create({
-      data: {
-        userId,
-        roleName: roleName as any,
-        hackathonId: hackathonId ?? null,
-      },
-    });
 
     return { success: true, message: `Role ${roleName} assigned successfully` };
   }

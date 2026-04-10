@@ -7,6 +7,7 @@ export const createCriteriaSchema = z.object({
   description: z.string().max(500).optional(),
   weight: z.number().min(0.1).max(10).default(1.0),
   maxScore: z.number().min(1).max(100).default(10),
+  orderIndex: z.number().int().min(0).default(0),
 });
 export type CreateCriteriaPayload = z.infer<typeof createCriteriaSchema>;
 
@@ -15,6 +16,7 @@ export const updateCriteriaSchema = z.object({
   description: z.string().max(500).optional(),
   weight: z.number().min(0.1).max(10).optional(),
   maxScore: z.number().min(1).max(100).optional(),
+  orderIndex: z.number().int().min(0).optional(),
 });
 export type UpdateCriteriaPayload = z.infer<typeof updateCriteriaSchema>;
 

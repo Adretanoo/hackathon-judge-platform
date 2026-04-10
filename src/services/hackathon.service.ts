@@ -60,12 +60,11 @@ export class HackathonService {
     return hackathon;
   }
 
-  async listHackathons(page: number = 1, limit: number = 20) {
+  async listHackathons(page: number = 1, limit: number = 20, showAll = false) {
     const skip = (page - 1) * limit;
-    
-    // Default public listing only shows non-archived non-draft ones usually, 
-    // but for an admin it could be all. We'll return everything for now.
-    const filter = {
+
+    // Public listing excludes DRAFT/ARCHIVED; admin passes showAll=true to see everything
+    const filter: any = showAll ? {} : {
       status: { notIn: [HackathonStatus.DRAFT, HackathonStatus.ARCHIVED] }
     };
 
@@ -75,7 +74,8 @@ export class HackathonService {
         where: filter,
         skip,
         take: limit,
-        orderBy: { startDate: 'desc' },
+        orderBy: { createdAt: 'desc' },
+        include: { _count: { select: { teams: true } } },
       })
     ]);
 

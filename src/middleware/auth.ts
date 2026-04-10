@@ -41,19 +41,25 @@ export function hasRole(
   return async (request: FastifyRequest, _reply: FastifyReply) => {
     const user = request.user as JwtPayload | undefined;
 
-    // Ensure user was authenticated
     if (!user || !user.sub) {
       throw new UnauthorizedError('Authentication required');
     }
 
     const userJwtRole = user.role as RoleName;
 
-    // GLOBAL_ADMIN bypass
-    if (allowGlobalAdminBypass && userJwtRole === RoleName.GLOBAL_ADMIN) {
-      return; 
+    // GLOBAL_ADMIN bypass — JWT fast-path first, then DB fallback
+    // (handles the case where GLOBAL_ADMIN was assigned after the JWT was issued)
+    if (allowGlobalAdminBypass) {
+      if (userJwtRole === RoleName.GLOBAL_ADMIN) {
+        return;
+      }
+      const dbAdminRole = await request.server.prisma.userRole.findFirst({
+        where: { userId: user.sub, roleName: RoleName.GLOBAL_ADMIN, hackathonId: null },
+      });
+      if (dbAdminRole) return;
     }
 
-    // Context: Global Check (uses JWT payload)
+    // Global context — use JWT role
     if (context === 'global') {
       if (!allowedRoles.includes(userJwtRole)) {
         throw new ForbiddenError('Insufficient global permissions');
@@ -61,27 +67,21 @@ export function hasRole(
       return;
     }
 
-    // Context: Hackathon Check (uses Database)
+    // Hackathon context — check DB for scoped role
     if (context === 'hackathon') {
       const params = request.params as Record<string, any>;
       const body = request.body as Record<string, any>;
       const query = request.query as Record<string, any>;
-      
       const hackathonId = params?.[paramName] || body?.[paramName] || query?.[paramName];
-      
+
       if (!hackathonId) {
-        throw new ForbiddenError(`Missing ${paramName} context for role check required by this endpoint`);
+        throw new ForbiddenError(`Missing ${paramName} context for role check`);
       }
 
-      // Query DB structure: check if user has a UserRole mapping linking them to the hackathon with an allowed Role
       const userRoleRecord = await request.server.prisma.userRole.findFirst({
-        where: {
-          userId: user.sub,
-          hackathonId: hackathonId,
-          roleName: { in: allowedRoles }
-        }
+        where: { userId: user.sub, hackathonId, roleName: { in: allowedRoles } },
       });
-      
+
       if (!userRoleRecord) {
         throw new ForbiddenError('Insufficient permissions for this hackathon context');
       }

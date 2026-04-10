@@ -25,12 +25,16 @@ export async function createHackathonHandler(
 }
 
 export async function getHackathonsHandler(
-  request: FastifyRequest<{ Querystring: { page?: number; limit?: number } }>,
+  request: FastifyRequest<{ Querystring: { page?: number; limit?: number; showAll?: string } }>,
   reply: FastifyReply,
 ) {
   const service = new HackathonService(request.server.prisma);
-  const { page, limit } = request.query;
-  const result = await service.listHackathons(Number(page) || 1, Number(limit) || 20);
+  const { page, limit, showAll } = request.query;
+  const result = await service.listHackathons(
+    Number(page) || 1,
+    Number(limit) || 20,
+    showAll === 'true',
+  );
   return reply.status(200).send(successResponse(result));
 }
 

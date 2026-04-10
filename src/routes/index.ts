@@ -11,7 +11,9 @@ import { projectRoutes } from './project.routes';
 import { teamRoutes } from './team.routes';
 import { leaderboardRoutes } from './leaderboard.routes';
 import { judgeConflictRoutes } from './judgeConflict.routes';
+import { judgingRoutes } from './judging.routes';
 import { exportRoutes } from './export.routes';
+import { configRoutes } from './config.routes';
 import { env } from '../config';
 
 /**
@@ -32,8 +34,10 @@ export async function registerRoutes(app: any): Promise<void> {
       await api.register(teamRoutes,      { prefix: '/' });
       await api.register(leaderboardRoutes, { prefix: '/hackathons' });
       await api.register(judgeConflictRoutes, { prefix: '/hackathons' });
+      await api.register(judgingRoutes,       { prefix: '/judging' });
       await api.register(exportRoutes,        { prefix: '/hackathons' });
       await api.register(userRoutes,      { prefix: '/users' });
+      await api.register(configRoutes,    { prefix: '/config' });
     },
     { prefix: env.API_PREFIX },
   );

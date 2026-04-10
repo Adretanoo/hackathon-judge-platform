@@ -44,6 +44,9 @@ export class ProjectService {
         videoUrl: data.videoUrl,
         techStack: data.techStack || [],
         status: ProjectStatus.DRAFT,
+        resources: data.resources ? {
+          create: data.resources
+        } : undefined,
       },
     });
   }
@@ -68,6 +71,10 @@ export class ProjectService {
         demoUrl: data.demoUrl,
         videoUrl: data.videoUrl,
         techStack: data.techStack,
+        resources: data.resources ? {
+          deleteMany: {},
+          create: data.resources
+        } : undefined,
       },
     });
   }
@@ -112,6 +119,7 @@ export class ProjectService {
         team: {
           select: { name: true, trackId: true }
         },
+        resources: true,
       }
     });
 
@@ -122,13 +130,33 @@ export class ProjectService {
   /**
    * List projects
    */
-  async listProjects(page: number, limit: number, filters: { teamId?: string; hackathonId?: string; status?: ProjectStatus }) {
+  async listProjects(page: number, limit: number, filters: { teamId?: string; hackathonId?: string; judgeId?: string; status?: ProjectStatus }) {
     const skip = (page - 1) * limit;
 
     const where: any = {};
     if (filters.teamId) where.teamId = filters.teamId;
     if (filters.status) where.status = filters.status;
-    if (filters.hackathonId) {
+    
+    if (filters.judgeId) {
+      // Find what this judge is allowed to see in this hackathon
+      const assignments = await this.app.prisma.judgeAssignment.findMany({
+        where: { 
+          judgeId: filters.judgeId,
+          hackathonId: filters.hackathonId
+        }
+      });
+
+      if (assignments.length > 0) {
+        where.team = {
+          hackathonId: filters.hackathonId,
+          OR: assignments.map(a => ({
+            trackId: a.trackId === null ? undefined : a.trackId
+          }))
+        };
+      } else {
+        where.id = 'none'; // No assignments found for this judge in this hackathon
+      }
+    } else if (filters.hackathonId) {
       where.team = { hackathonId: filters.hackathonId };
     }
 
@@ -139,7 +167,8 @@ export class ProjectService {
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
-          team: { select: { hackathonId: true, trackId: true } },
+          team: { select: { hackathonId: true, trackId: true, name: true } },
+          scores: filters.judgeId ? { where: { judgeId: filters.judgeId } } : false
         }
       }),
       this.app.prisma.project.count({ where }),
