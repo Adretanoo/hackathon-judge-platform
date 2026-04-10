@@ -19,6 +19,8 @@ import swaggerPlugin from './plugins/swagger';
 import cookiePlugin from './plugins/cookie';
 import jwtPlugin from './plugins/jwt';
 import prismaPlugin from './plugins/prisma';
+import redisPlugin from './plugins/redis';
+import websocketPlugin from './plugins/websocket';
 import errorHandlerPlugin from './plugins/errorHandler';
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
@@ -64,8 +66,12 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(corsPlugin);
   await app.register(rateLimitPlugin);
 
-  // ── Database ─────────────────────────────────────────────────────────────
+  // ── Database & Cache ────────────────────────────────────────────────────
   await app.register(prismaPlugin);
+  await app.register(redisPlugin);
+
+  // ── Real-time ────────────────────────────────────────────────────────────
+  await app.register(websocketPlugin);
 
   // ── Auth ─────────────────────────────────────────────────────────────────
   await app.register(cookiePlugin);
@@ -128,4 +134,7 @@ async function start(): Promise<void> {
 }
 
 // ─── Entrypoint ───────────────────────────────────────────────────────────────
-void start();
+if (require.main === module) {
+  void start();
+}
+

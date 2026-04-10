@@ -23,6 +23,10 @@ import {
   deleteAwardHandler,
 } from '../controllers/hackathon.controller';
 import {
+  createCriteriaHandler,
+  getCriteriaForHackathonHandler,
+} from '../controllers/criteria.controller';
+import {
   createHackathonSchema,
   updateHackathonSchema,
   changeHackathonStatusSchema,
@@ -33,6 +37,7 @@ import {
   createAwardSchema,
   updateAwardSchema,
 } from '../schemas/hackathon.schema';
+import { createCriteriaSchema } from '../schemas/criteria.schema';
 
 const errorSchema = {
   type: 'object',
@@ -330,5 +335,39 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
       ],
     },
     deleteAwardHandler as any
+  );
+
+  // ─── Criteria ────────────────────────────────────────────────────────────────
+
+  app.post(
+    '/:id/criteria',
+    {
+      schema: {
+        tags: ['Hackathons', 'Criteria'],
+        summary: 'Add a judging criteria to a hackathon track',
+        security: [{ BearerAuth: [] }],
+        response: { 201: genericSuccessSchema, 400: errorSchema },
+      },
+      preHandler: [
+        app.authenticate,
+        hasRole([RoleName.ORGANIZER, RoleName.GLOBAL_ADMIN], { context: 'hackathon', paramName: 'id' }),
+      ],
+    },
+    (req, reply) => {
+      req.body = createCriteriaSchema.parse(req.body);
+      return createCriteriaHandler(req as any, reply);
+    }
+  );
+
+  app.get(
+    '/:id/criteria',
+    {
+      schema: {
+        tags: ['Hackathons', 'Criteria'],
+        summary: 'Get all criteria for this hackathon',
+        response: { 200: genericSuccessSchema },
+      },
+    },
+    getCriteriaForHackathonHandler as any
   );
 }

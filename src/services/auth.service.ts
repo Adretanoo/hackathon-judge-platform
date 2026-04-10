@@ -163,10 +163,12 @@ export class AuthService {
   // ─── Private helpers ────────────────────────────────────────────────────────
 
   private async generateAndStoreTokens(userId: string, email: string, role: RoleName, ipAddress?: string, deviceInfo?: string): Promise<TokenPair> {
-    const payload: JwtPayload = { sub: userId, email, role: role as any };
+    const jti = crypto.randomUUID();
+    const payload: JwtPayload = { sub: userId, email, role: role as any, jti };
 
     const accessToken = this.app.jwt.sign(payload, { expiresIn: env.JWT_EXPIRES_IN });
     const refreshToken = this.app.jwt.sign(payload, { key: env.JWT_REFRESH_SECRET, expiresIn: env.JWT_REFRESH_EXPIRES_IN });
+
 
     const tokenHash = this.hashToken(refreshToken);
     const expiresMs = ms(env.JWT_REFRESH_EXPIRES_IN as string);

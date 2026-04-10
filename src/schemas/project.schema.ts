@@ -1,44 +1,37 @@
-/**
- * @file src/schemas/project.schema.ts
- * @description Zod schemas for Project submission endpoints.
- */
-
 import { z } from 'zod';
-import { ProjectStatus } from '../types';
-import { paginationSchema, uuidSchema } from './common';
+import { ProjectStatus } from '@prisma/client';
+import { cuidSchema, paginationSchema } from './common';
 
-// ─── Create ───────────────────────────────────────────────────────────────────
-
-export const createProjectBodySchema = z.object({
-  hackathonId: uuidSchema,
-  title: z
-    .string({ required_error: 'Title is required' })
-    .min(3)
-    .max(200)
-    .trim(),
-  description: z.string().max(10_000).trim().optional(),
-  repoUrl: z.string().url('Must be a valid URL').optional(),
-  demoUrl: z.string().url('Must be a valid URL').optional(),
-  techStack: z.array(z.string().trim()).max(20).default([]),
-  teamName: z.string().max(100).trim().optional(),
+export const createProjectSchema = z.object({
+  teamId: cuidSchema,
+  title: z.string().min(3).max(100),
+  description: z.string().max(2000).optional(),
+  repoUrl: z.string().url().max(255).optional().or(z.literal('')),
+  demoUrl: z.string().url().max(255).optional().or(z.literal('')),
+  videoUrl: z.string().url().max(255).optional().or(z.literal('')),
+  techStack: z.array(z.string()).max(20).optional(),
 });
+export type CreateProjectPayload = z.infer<typeof createProjectSchema>;
 
-// ─── Update ───────────────────────────────────────────────────────────────────
-
-export const updateProjectBodySchema = createProjectBodySchema
-  .omit({ hackathonId: true })
-  .partial();
-
-// ─── List query ───────────────────────────────────────────────────────────────
-
-export const listProjectsQuerySchema = paginationSchema.extend({
-  hackathonId: uuidSchema.optional(),
-  status: z.nativeEnum(ProjectStatus).optional(),
-  teamName: z.string().trim().optional(),
+export const updateProjectSchema = z.object({
+  title: z.string().min(3).max(100).optional(),
+  description: z.string().max(2000).optional(),
+  repoUrl: z.string().url().max(255).optional().or(z.literal('')),
+  demoUrl: z.string().url().max(255).optional().or(z.literal('')),
+  videoUrl: z.string().url().max(255).optional().or(z.literal('')),
+  techStack: z.array(z.string()).max(20).optional(),
 });
+export type UpdateProjectPayload = z.infer<typeof updateProjectSchema>;
 
-// ─── Inferred types ───────────────────────────────────────────────────────────
+export const changeProjectStatusSchema = z.object({
+  status: z.nativeEnum(ProjectStatus),
+});
+export type ChangeProjectStatusPayload = z.infer<typeof changeProjectStatusSchema>;
 
-export type CreateProjectBody = z.infer<typeof createProjectBodySchema>;
-export type UpdateProjectBody = z.infer<typeof updateProjectBodySchema>;
-export type ListProjectsQuery = z.infer<typeof listProjectsQuerySchema>;
+export const listProjectsSchema = z.object({
+  querystring: paginationSchema.extend({
+    teamId: cuidSchema.optional(),
+    hackathonId: cuidSchema.optional(),
+    status: z.nativeEnum(ProjectStatus).optional(),
+  }),
+});

@@ -22,9 +22,11 @@ export interface JwtPayload {
   sub: string;       // user id
   email: string;
   role: UserRole;
+  jti?: string;      // unique token identifier
   iat?: number;
   exp?: number;
 }
+
 
 /** JWT token pair returned after successful auth */
 export interface TokenPair {

@@ -7,6 +7,9 @@ import type { FastifyInstance } from 'fastify';
 import { healthRoutes } from './health.routes';
 import { authRoutes } from './auth.routes';
 import { hackathonRoutes } from './hackathon.routes';
+import { userRoutes } from './user.routes';
+import { projectRoutes } from './project.routes';
+import { leaderboardRoutes } from './leaderboard.routes';
 import { env } from '../config';
 
 /**
@@ -26,11 +29,9 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
 
       // Phase 2 – uncomment as you implement each module:
       await api.register(hackathonRoutes, { prefix: '/hackathons' });
-      // await api.register(projectRoutes,   { prefix: '/projects' });
-      // await api.register(criteriaRoutes,  { prefix: '/criteria' });
-      // await api.register(scoreRoutes,     { prefix: '/scores' });
-      // await api.register(leaderboardRoutes, { prefix: '/leaderboard' });
-      // await api.register(userRoutes,      { prefix: '/users' });
+      await api.register(projectRoutes,   { prefix: '/projects' });
+      await api.register(leaderboardRoutes, { prefix: '/hackathons' });
+      await api.register(userRoutes,      { prefix: '/users' });
     },
     { prefix: env.API_PREFIX },
   );

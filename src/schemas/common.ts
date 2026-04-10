@@ -10,10 +10,21 @@ export const uuidSchema = z
   .string({ required_error: 'ID is required' })
   .uuid('Must be a valid UUID');
 
-/** Route params with a single :id */
+/** CUID string (used by Prisma default) */
+export const cuidSchema = z
+  .string({ required_error: 'ID is required' })
+  .cuid('Must be a valid CUID');
+
+/** Route params with a single :id as UUID */
 export const idParamSchema = z.object({
   id: uuidSchema,
 });
+
+/** Route params with a single :id as CUID */
+export const idParamCuidSchema = z.object({
+  id: cuidSchema,
+});
+
 
 /** Pagination query params */
 export const paginationSchema = z.object({
