@@ -4,19 +4,22 @@
  */
 
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import ms from 'ms';
 import type { FastifyInstance } from 'fastify';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, RoleName } from '@prisma/client';
 import { env } from '../config';
 import { ConflictError, UnauthorizedError } from '../utils/errors';
-import type { JwtPayload, TokenPair, UserRole } from '../types';
+import type { JwtPayload, TokenPair } from '../types';
 import type { LoginBody, RegisterBody } from '../schemas/auth.schema';
 
 /** Minimal user shape returned to the client */
 export interface AuthUser {
   id: string;
-  name: string;
+  username: string;
+  fullName: string;
   email: string;
-  role: UserRole;
+  role?: RoleName;
 }
 
 /** Response returned after successful auth */
@@ -24,66 +27,57 @@ export interface AuthResponse extends TokenPair {
   user: AuthUser;
 }
 
-/**
- * Authentication service class.
- * Depends on Prisma for persistence and Fastify for JWT signing.
- */
 export class AuthService {
   constructor(
     private readonly prisma: PrismaClient,
     private readonly app: FastifyInstance,
   ) {}
 
-  /**
-   * Registers a new user account.
-   *
-   * @param body - Validated registration payload.
-   * @returns    Auth response with token pair and user info.
-   * @throws ConflictError if the email is already taken.
-   */
-  async register(body: RegisterBody): Promise<AuthResponse> {
-    const existing = await this.prisma.user.findUnique({
-      where: { email: body.email },
+  async register(body: RegisterBody, ipAddress?: string, deviceInfo?: string): Promise<AuthResponse> {
+    const existing = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ email: body.email }, { username: body.username }],
+      },
     });
 
     if (existing) {
-      throw new ConflictError('An account with this email already exists');
+      throw new ConflictError('An account with this email or username already exists');
     }
 
     const passwordHash = await bcrypt.hash(body.password, env.BCRYPT_ROUNDS);
 
+    const userRole = body.role || RoleName.PARTICIPANT;
+
     const user = await this.prisma.user.create({
       data: {
-        name: body.name,
+        username: body.username,
+        fullName: body.fullName,
         email: body.email,
         passwordHash,
-        role: body.role,
       },
-      select: { id: true, name: true, email: true, role: true },
+      select: { id: true, username: true, fullName: true, email: true },
     });
 
-    const tokens = this.signTokenPair({
-      sub: user.id,
-      email: user.email,
-      role: user.role as UserRole,
-    });
+    // Optionally assign global role directly if we have seed roles, but skipping for brevity
+    // unless strictly needed. We will return it mockingly in authUser payload.
+    
+    const tokens = await this.generateAndStoreTokens(user.id, user.email, userRole, ipAddress, deviceInfo);
 
-    return { ...tokens, user: user as AuthUser };
+    return { ...tokens, user: { ...user, role: userRole } };
   }
 
-  /**
-   * Authenticates a user with email + password.
-   *
-   * @param body - Validated login payload.
-   * @returns    Auth response with token pair and user info.
-   * @throws UnauthorizedError on invalid credentials.
-   */
-  async login(body: LoginBody): Promise<AuthResponse> {
+  async login(body: LoginBody, ipAddress?: string, deviceInfo?: string): Promise<AuthResponse> {
     const user = await this.prisma.user.findUnique({
       where: { email: body.email },
+      include: {
+        roles: {
+          where: { hackathonId: null },
+          include: { role: true }
+        }
+      }
     });
 
-    if (!user || user.status === 'BANNED') {
+    if (!user || user.isActive === false) {
       throw new UnauthorizedError('Invalid email or password');
     }
 
@@ -92,74 +86,106 @@ export class AuthService {
       throw new UnauthorizedError('Invalid email or password');
     }
 
-    const tokens = this.signTokenPair({
-      sub: user.id,
-      email: user.email,
-      role: user.role as UserRole,
-    });
+    // ── 2FA Stub ──
+    const is2faEnabled = false; // Add this block logic later when enabling 2FA
+    if (is2faEnabled) {
+      // return type could be extended to indicate OTP needed
+      // return { requires2fa: true };
+    }
+
+    const primaryRole = user.roles.length > 0 ? user.roles[0]?.role.name : RoleName.PARTICIPANT;
+
+    const tokens = await this.generateAndStoreTokens(user.id, user.email, primaryRole as RoleName, ipAddress, deviceInfo);
 
     return {
       ...tokens,
       user: {
         id: user.id,
-        name: user.name,
+        username: user.username,
+        fullName: user.fullName,
         email: user.email,
-        role: user.role as UserRole,
+        role: primaryRole as RoleName,
       },
     };
   }
 
-  /**
-   * Generates a new access token from a valid refresh token.
-   *
-   * @param refreshToken - JWT refresh token string.
-   * @returns New token pair.
-   * @throws UnauthorizedError if the refresh token is invalid.
-   */
-  async refresh(refreshToken: string): Promise<TokenPair> {
-    let payload: JwtPayload;
-
+  async refresh(refreshToken: string, ipAddress?: string, deviceInfo?: string): Promise<TokenPair> {
     try {
-      payload = this.app.jwt.verify<JwtPayload>(refreshToken, {
+      this.app.jwt.verify<JwtPayload>(refreshToken, {
         key: env.JWT_REFRESH_SECRET,
       });
     } catch {
       throw new UnauthorizedError('Invalid or expired refresh token');
     }
 
-    const user = await this.prisma.user.findUnique({
-      where: { id: payload.sub },
+    const tokenHash = this.hashToken(refreshToken);
+
+    const storedToken = await this.prisma.userToken.findUnique({
+      where: { tokenHash },
+      include: { user: {
+        include: {
+          roles: { where: { hackathonId: null }, include: { role: true } }
+        }
+      }}
     });
 
-    if (!user || user.status === 'BANNED') {
-      throw new UnauthorizedError('User not found or banned');
+    if (!storedToken || storedToken.revokedAt || storedToken.expiresAt < new Date()) {
+      // Possible token reuse attack detected, or normal expiration
+      throw new UnauthorizedError('Invalid or revoked refresh token');
     }
 
-    return this.signTokenPair({
-      sub: user.id,
-      email: user.email,
-      role: user.role as UserRole,
+    const user = storedToken.user;
+    if (!user.isActive) {
+      throw new UnauthorizedError('User is not active');
+    }
+
+    // Revoke the old token (Token rotation mechanism)
+    await this.prisma.userToken.update({
+      where: { id: storedToken.id },
+      data: { revokedAt: new Date() }
+    });
+
+    const primaryRole = user.roles.length > 0 ? user.roles[0]?.role.name : RoleName.PARTICIPANT;
+
+    return await this.generateAndStoreTokens(user.id, user.email, primaryRole as RoleName, ipAddress, deviceInfo);
+  }
+
+  async logout(refreshToken: string): Promise<void> {
+    if (!refreshToken) return;
+    
+    const tokenHash = this.hashToken(refreshToken);
+    await this.prisma.userToken.updateMany({
+      where: { tokenHash, revokedAt: null },
+      data: { revokedAt: new Date() }
     });
   }
 
   // ─── Private helpers ────────────────────────────────────────────────────────
 
-  /**
-   * Signs both an access token and a refresh token.
-   *
-   * @param payload - JWT claims.
-   * @returns TokenPair { accessToken, refreshToken }.
-   */
-  private signTokenPair(payload: JwtPayload): TokenPair {
-    const accessToken = this.app.jwt.sign(payload, {
-      expiresIn: env.JWT_EXPIRES_IN,
-    });
+  private async generateAndStoreTokens(userId: string, email: string, role: RoleName, ipAddress?: string, deviceInfo?: string): Promise<TokenPair> {
+    const payload: JwtPayload = { sub: userId, email, role: role as any };
 
-    const refreshToken = this.app.jwt.sign(payload, {
-      key: env.JWT_REFRESH_SECRET,
-      expiresIn: env.JWT_REFRESH_EXPIRES_IN,
+    const accessToken = this.app.jwt.sign(payload, { expiresIn: env.JWT_EXPIRES_IN });
+    const refreshToken = this.app.jwt.sign(payload, { key: env.JWT_REFRESH_SECRET, expiresIn: env.JWT_REFRESH_EXPIRES_IN });
+
+    const tokenHash = this.hashToken(refreshToken);
+    const expiresMs = ms(env.JWT_REFRESH_EXPIRES_IN as string);
+    const expiresAt = new Date(Date.now() + expiresMs);
+
+    await this.prisma.userToken.create({
+      data: {
+        userId,
+        tokenHash,
+        ipAddress,
+        deviceInfo,
+        expiresAt,
+      }
     });
 
     return { accessToken, refreshToken };
+  }
+
+  private hashToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
   }
 }

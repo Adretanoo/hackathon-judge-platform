@@ -16,6 +16,7 @@ import helmetPlugin from './plugins/helmet';
 import corsPlugin from './plugins/cors';
 import rateLimitPlugin from './plugins/rateLimit';
 import swaggerPlugin from './plugins/swagger';
+import cookiePlugin from './plugins/cookie';
 import jwtPlugin from './plugins/jwt';
 import prismaPlugin from './plugins/prisma';
 import errorHandlerPlugin from './plugins/errorHandler';
@@ -67,6 +68,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(prismaPlugin);
 
   // ── Auth ─────────────────────────────────────────────────────────────────
+  await app.register(cookiePlugin);
   await app.register(jwtPlugin);
 
   // ── API documentation ────────────────────────────────────────────────────

@@ -4,15 +4,20 @@
  */
 
 import { z } from 'zod';
-import { UserRole } from '../types';
+import { RoleName } from '@prisma/client';
 
 // ─── Register ─────────────────────────────────────────────────────────────────
 
 export const registerBodySchema = z.object({
-  name: z
-    .string({ required_error: 'Name is required' })
-    .min(2, 'Name must be at least 2 characters')
-    .max(100, 'Name must be at most 100 characters')
+  username: z
+    .string({ required_error: 'Username is required' })
+    .min(3, 'Username must be at least 3 characters')
+    .max(50, 'Username must be at most 50 characters')
+    .trim(),
+  fullName: z
+    .string({ required_error: 'Full name is required' })
+    .min(2, 'Full name must be at least 2 characters')
+    .max(100, 'Full name must be at most 100 characters')
     .trim(),
   email: z
     .string({ required_error: 'Email is required' })
@@ -27,7 +32,7 @@ export const registerBodySchema = z.object({
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
       'Password must contain at least one uppercase letter, one lowercase letter, and one number',
     ),
-  role: z.nativeEnum(UserRole).default(UserRole.PARTICIPANT),
+  role: z.nativeEnum(RoleName).default(RoleName.PARTICIPANT),
 });
 
 // ─── Login ────────────────────────────────────────────────────────────────────
@@ -41,32 +46,31 @@ export const loginBodySchema = z.object({
   password: z.string({ required_error: 'Password is required' }),
 });
 
-// ─── Refresh token ────────────────────────────────────────────────────────────
-
-export const refreshTokenBodySchema = z.object({
-  refreshToken: z
-    .string({ required_error: 'Refresh token is required' })
-    .min(1),
-});
-
 // ─── Response schemas ─────────────────────────────────────────────────────────
 
 export const authResponseSchema = z.object({
   success: z.literal(true),
   data: z.object({
     accessToken: z.string(),
-    refreshToken: z.string(),
     user: z.object({
       id: z.string().uuid(),
-      name: z.string(),
+      username: z.string(),
+      fullName: z.string(),
       email: z.string().email(),
-      role: z.nativeEnum(UserRole),
+      role: z.nativeEnum(RoleName).optional(),
     }),
   }),
 });
+
+export const logoutResponseSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    message: z.string(),
+  }),
+});
+
 
 // ─── Inferred types ───────────────────────────────────────────────────────────
 
 export type RegisterBody = z.infer<typeof registerBodySchema>;
 export type LoginBody = z.infer<typeof loginBodySchema>;
-export type RefreshTokenBody = z.infer<typeof refreshTokenBodySchema>;

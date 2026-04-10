@@ -5,18 +5,16 @@
 
 // ─── User / Auth ─────────────────────────────────────────────────────────────
 
-/** Roles available in the system */
-export enum UserRole {
-  ADMIN = 'ADMIN',
-  JUDGE = 'JUDGE',
-  PARTICIPANT = 'PARTICIPANT',
-}
+import { RoleName } from '@prisma/client';
+
+/** Roles available in the system (re-export from Prisma) */
+export const UserRole = { ...RoleName };
+export type UserRole = RoleName;
 
 /** Status of a user account */
 export enum UserStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
-  BANNED = 'BANNED',
 }
 
 /** Minimal user representation embedded in JWT */

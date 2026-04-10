@@ -1,12 +1,6 @@
 /**
  * @file src/routes/auth.routes.ts
  * @description Authentication route definitions with full OpenAPI annotations.
- *
- * NOTE: Every response schema must satisfy AJV + fast-json-stringify requirements:
- *  - `type` must be specified
- *  - error responses (`4xx`) must include `properties`
- *  - `description` is only a documentation string, not a schema keyword at
- *     the properties-value level, so we keep it at the schema root only.
  */
 
 import type { FastifyInstance } from 'fastify';
@@ -15,16 +9,15 @@ import {
   loginHandler,
   refreshHandler,
   meHandler,
+  logoutHandler,
 } from '../controllers/auth.controller';
 import {
   registerBodySchema,
   loginBodySchema,
-  refreshTokenBodySchema,
 } from '../schemas/auth.schema';
 
 // ─── Reusable sub-schemas ─────────────────────────────────────────────────────
 
-/** Standard error response envelope */
 const errorSchema = {
   type: 'object',
   properties: {
@@ -40,25 +33,23 @@ const errorSchema = {
   },
 } as const;
 
-/** Auth token pair + user profile */
 const authDataSchema = {
   type: 'object',
   properties: {
     accessToken: { type: 'string' },
-    refreshToken: { type: 'string' },
     user: {
       type: 'object',
       properties: {
         id: { type: 'string', format: 'uuid' },
-        name: { type: 'string' },
+        username: { type: 'string' },
+        fullName: { type: 'string' },
         email: { type: 'string', format: 'email' },
-        role: { type: 'string', enum: ['ADMIN', 'JUDGE', 'PARTICIPANT'] },
+        role: { type: 'string' },
       },
     },
   },
 } as const;
 
-/** Success envelope wrapping auth data */
 const authSuccessSchema = {
   type: 'object',
   properties: {
@@ -67,7 +58,6 @@ const authSuccessSchema = {
   },
 } as const;
 
-/** Success envelope wrapping token pair only */
 const tokenSuccessSchema = {
   type: 'object',
   properties: {
@@ -76,13 +66,11 @@ const tokenSuccessSchema = {
       type: 'object',
       properties: {
         accessToken: { type: 'string' },
-        refreshToken: { type: 'string' },
       },
     },
   },
 } as const;
 
-/** Success envelope wrapping the JWT payload (me endpoint) */
 const meSuccessSchema = {
   type: 'object',
   properties: {
@@ -100,13 +88,19 @@ const meSuccessSchema = {
   },
 } as const;
 
-// ─── Route registration ───────────────────────────────────────────────────────
+const logoutSuccessSchema = {
+  type: 'object',
+  properties: {
+    success: { type: 'boolean', enum: [true] },
+    data: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+      },
+    },
+  },
+} as const;
 
-/**
- * Registers /auth/* routes on the Fastify instance.
- *
- * @param app - Fastify application instance.
- */
 export async function authRoutes(app: FastifyInstance): Promise<void> {
   // ── POST /auth/register ──────────────────────────────────────────────────
   app.post(
@@ -115,54 +109,23 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       schema: {
         tags: ['Auth'],
         summary: 'Register a new account',
-        description:
-          'Creates a new user account and returns a JWT token pair. ' +
-          'Passwords must contain at least one uppercase letter, lowercase letter and digit.',
+        description: 'Creates a new user account and returns an access token via body and refresh token via HttpOnly cookie.',
         security: [],
         body: {
           type: 'object',
-          required: ['name', 'email', 'password'],
+          required: ['username', 'fullName', 'email', 'password'],
           properties: {
-            name: {
-              type: 'string',
-              minLength: 2,
-              maxLength: 100,
-              description: 'Full name of the user',
-              examples: ['Jane Doe'],
-            },
-            email: {
-              type: 'string',
-              format: 'email',
-              description: 'Unique email address',
-              examples: ['jane@example.com'],
-            },
-            password: {
-              type: 'string',
-              minLength: 8,
-              description: 'Password (min 8 chars, must include upper, lower, digit)',
-              examples: ['Secret123'],
-            },
-            role: {
-              type: 'string',
-              enum: ['ADMIN', 'JUDGE', 'PARTICIPANT'],
-              default: 'PARTICIPANT',
-              description: 'Account role',
-            },
+            username: { type: 'string', minLength: 3, maxLength: 50 },
+            fullName: { type: 'string', minLength: 2, maxLength: 100 },
+            email: { type: 'string', format: 'email' },
+            password: { type: 'string', minLength: 8 },
+            role: { type: 'string', enum: ['GLOBAL_ADMIN', 'ORGANIZER', 'JUDGE', 'MENTOR', 'PARTICIPANT'] },
           },
         },
         response: {
-          201: {
-            description: 'Account created successfully',
-            ...authSuccessSchema,
-          },
-          409: {
-            description: 'Email already in use',
-            ...errorSchema,
-          },
-          422: {
-            description: 'Validation error',
-            ...errorSchema,
-          },
+          201: { description: 'Account created successfully', ...authSuccessSchema },
+          409: { description: 'Conflict', ...errorSchema },
+          422: { description: 'Validation error', ...errorSchema },
         },
       },
       preHandler: async (request) => {
@@ -179,33 +142,19 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       schema: {
         tags: ['Auth'],
         summary: 'Login',
-        description:
-          'Authenticates with email + password and returns a JWT access + refresh token pair.',
+        description: 'Authenticates and returns an access token via body and refresh token via HttpOnly cookie.',
         security: [],
         body: {
           type: 'object',
           required: ['email', 'password'],
           properties: {
-            email: {
-              type: 'string',
-              format: 'email',
-              examples: ['jane@example.com'],
-            },
-            password: {
-              type: 'string',
-              examples: ['Secret123'],
-            },
+            email: { type: 'string', format: 'email' },
+            password: { type: 'string' },
           },
         },
         response: {
-          200: {
-            description: 'Login successful',
-            ...authSuccessSchema,
-          },
-          401: {
-            description: 'Invalid credentials',
-            ...errorSchema,
-          },
+          200: { description: 'Login successful', ...authSuccessSchema },
+          401: { description: 'Invalid credentials', ...errorSchema },
         },
       },
       preHandler: async (request) => {
@@ -222,32 +171,32 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       schema: {
         tags: ['Auth'],
         summary: 'Refresh access token',
-        description:
-          'Exchanges a valid refresh token for a new access + refresh token pair.',
+        description: 'Reads refresh token from HttpOnly cookie and issues a new access + refresh token.',
         security: [],
-        body: {
-          type: 'object',
-          required: ['refreshToken'],
-          properties: {
-            refreshToken: { type: 'string' },
-          },
-        },
         response: {
-          200: {
-            description: 'Token refreshed',
-            ...tokenSuccessSchema,
-          },
-          401: {
-            description: 'Invalid or expired refresh token',
-            ...errorSchema,
-          },
+          200: { description: 'Token refreshed', ...tokenSuccessSchema },
+          401: { description: 'Invalid or expired refresh token', ...errorSchema },
         },
-      },
-      preHandler: async (request) => {
-        request.body = refreshTokenBodySchema.parse(request.body);
       },
     },
     refreshHandler,
+  );
+
+  // ── POST /auth/logout ────────────────────────────────────────────────────
+  app.post(
+    '/logout',
+    {
+      schema: {
+        tags: ['Auth'],
+        summary: 'Logout',
+        description: 'Revokes the refresh token and clears the cookie.',
+        security: [],
+        response: {
+          200: { description: 'Logged out successfully', ...logoutSuccessSchema },
+        },
+      },
+    },
+    logoutHandler,
   );
 
   // ── GET /auth/me ─────────────────────────────────────────────────────────
@@ -259,14 +208,8 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
         summary: 'Get current user',
         description: 'Returns the JWT payload of the currently authenticated user.',
         response: {
-          200: {
-            description: 'Current user profile',
-            ...meSuccessSchema,
-          },
-          401: {
-            description: 'Not authenticated',
-            ...errorSchema,
-          },
+          200: { description: 'Current user profile', ...meSuccessSchema },
+          401: { description: 'Not authenticated', ...errorSchema },
         },
       },
       preHandler: [app.authenticate],

@@ -1,5 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// =============================================================================
+// Hackathon Judge Platform — Prisma Schema
+// PostgreSQL · UUID (cuid) · snake_case columns
+// =============================================================================
 
 generator client {
   provider = "prisma-client-js"
@@ -10,157 +12,650 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─── Enums ────────────────────────────────────────────────────────────────────
+// =============================================================================
+// ENUMS
+// =============================================================================
 
-enum UserRole {
-  ADMIN
+/// Global platform roles (also used as hackathon-scoped roles via UserRole)
+enum RoleName {
+  GLOBAL_ADMIN
+  ORGANIZER
   JUDGE
+  MENTOR
   PARTICIPANT
 }
 
-enum UserStatus {
-  ACTIVE
-  INACTIVE
-  BANNED
-}
-
+/// Lifecycle status of a hackathon
 enum HackathonStatus {
   DRAFT
+  PUBLISHED
   REGISTRATION_OPEN
+  REGISTRATION_CLOSED
   IN_PROGRESS
   JUDGING
   COMPLETED
   ARCHIVED
 }
 
+/// Membership status of a team
+enum TeamStatus {
+  FORMING
+  COMPLETE
+  SUBMITTED
+  DISQUALIFIED
+}
+
+/// Role of a member inside a team
+enum TeamMemberRole {
+  CAPTAIN
+  MEMBER
+}
+
+/// Lifecycle status of a team invitation
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+/// Submission status of a project
 enum ProjectStatus {
   DRAFT
   SUBMITTED
   UNDER_REVIEW
-  SCORED
+  ACCEPTED
+  REJECTED
   DISQUALIFIED
 }
 
-// ─── Models ───────────────────────────────────────────────────────────────────
+/// Reason a judge is in conflict with a team
+enum ConflictType {
+  TEAM_MEMBER
+  SUPERVISOR
+  PERSONAL
+  OTHER
+}
 
+/// Mentor slot booking state
+enum SlotStatus {
+  AVAILABLE
+  BOOKED
+  CANCELLED
+  COMPLETED
+}
+
+// =============================================================================
+// ── USERS & AUTH ──────────────────────────────────────────────────────────────
+// =============================================================================
+
+/// Application user account
 model User {
-  id           String     @id @default(uuid())
-  name         String
-  email        String     @unique
-  passwordHash String     @map("password_hash")
-  role         UserRole   @default(PARTICIPANT)
-  status       UserStatus @default(ACTIVE)
-  avatarUrl    String?    @map("avatar_url")
+  id           String  @id @default(cuid())
+  email        String  @unique
+  username     String  @unique
+  fullName     String  @map("full_name")
+  passwordHash String  @map("password_hash")
+  avatarUrl    String? @map("avatar_url")
   bio          String?
+  /// JSON array of skill strings, e.g. ["TypeScript","Rust"]
+  skills       Json    @default("[]")
+  isVerified   Boolean @default(false) @map("is_verified")
+  isActive     Boolean @default(true)  @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
 
   // Relations
-  organizedHackathons Hackathon[]      @relation("HackathonOrganizer")
-  judgeAssignments    JudgeAssignment[]
-  projects            Project[]        @relation("ProjectOwner")
-  scores              Score[]
+  tokens           UserToken[]
+  socials          UserSocial[]
+  roles            UserRole[]
+  studentInfo      StudentInfo?
+  organizedHackathons Hackathon[] @relation("HackathonOrganizer")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt     @map("updated_at")
+  teamMemberships  TeamMember[]
+  sentInvites      TeamInvite[] @relation("InviteSender")
+  receivedInvites  TeamInvite[] @relation("InviteReceiver")
 
+  mentorExpertises MentorExpertise[]
+  mentorAvailabilities MentorAvailability[]
+  bookedSlots      MentorSlot[] @relation("SlotBooker")
+
+  judgeAssignments JudgeAssignment[]
+  judgeConflicts   JudgeConflict[]
+  scores           Score[]
+
+  @@index([email])
+  @@index([username])
   @@map("users")
 }
 
-model Hackathon {
-  id          String          @id @default(uuid())
-  title       String
-  description String?
-  status      HackathonStatus @default(DRAFT)
-  startDate   DateTime        @map("start_date")
-  endDate     DateTime        @map("end_date")
-  maxTeamSize Int             @default(4) @map("max_team_size")
-  maxProjects Int?            @map("max_projects")
-  isPublic    Boolean         @default(true) @map("is_public")
-  bannerUrl   String?         @map("banner_url")
+/// JWT refresh tokens / device sessions
+model UserToken {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  tokenHash   String   @unique @map("token_hash")
+  deviceInfo  String?  @map("device_info")
+  ipAddress   String?  @map("ip_address")
+  expiresAt   DateTime @map("expires_at") @db.Timestamptz
+  revokedAt   DateTime? @map("revoked_at") @db.Timestamptz
 
-  // Organizer
-  organizerId String @map("organizer_id")
-  organizer   User   @relation("HackathonOrganizer", fields: [organizerId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("user_tokens")
+}
+
+/// OAuth / social accounts linked to a user
+model UserSocial {
+  id         String  @id @default(cuid())
+  userId     String  @map("user_id")
+  provider   String  /// "github" | "google" | "linkedin" | …
+  providerId String  @map("provider_id")
+  profileUrl String? @map("profile_url")
+  accessToken  String? @map("access_token")
+  refreshToken String? @map("refresh_token")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@map("user_socials")
+}
+
+// =============================================================================
+// ── ROLES & RBAC ──────────────────────────────────────────────────────────────
+// =============================================================================
+
+/// Named role definitions (seeded at startup)
+model Role {
+  id          String   @id @default(cuid())
+  name        RoleName @unique
+  description String?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  userRoles UserRole[]
+
+  @@map("roles")
+}
+
+/// Assignment of a role to a user, optionally scoped to a hackathon
+model UserRole {
+  id          String  @id @default(cuid())
+  userId      String  @map("user_id")
+  roleId      String  @map("role_id")
+  /// NULL → global role; non-null → hackathon-scoped role
+  hackathonId String? @map("hackathon_id")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role       @relation(fields: [roleId], references: [id])
+  hackathon Hackathon? @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId, hackathonId])
+  @@index([userId])
+  @@index([hackathonId])
+  @@map("user_roles")
+}
+
+// =============================================================================
+// ── STUDENT PROFILES (optional academic data) ─────────────────────────────────
+// =============================================================================
+
+/// One-to-one academic profile for student participants
+model StudentInfo {
+  id           String  @id @default(cuid())
+  userId       String  @unique @map("user_id")
+  studentCode  String? @unique @map("student_code")
+  groupId      String? @map("group_id")
+  year         Int?
+  gpa          Decimal? @db.Decimal(4, 2)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group StudentGroup? @relation(fields: [groupId], references: [id])
+
+  @@map("student_info")
+}
+
+/// Academic specialty (e.g., "Computer Science")
+model Specialty {
+  id   String @id @default(cuid())
+  code String @unique
+  name String
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  groups StudentGroup[]
+
+  @@map("specialties")
+}
+
+/// Academic group within a specialty
+model StudentGroup {
+  id          String  @id @default(cuid())
+  specialtyId String  @map("specialty_id")
+  name        String  @unique
+  year        Int
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  specialty    Specialty     @relation(fields: [specialtyId], references: [id])
+  studentInfos StudentInfo[]
+
+  @@index([specialtyId])
+  @@map("student_groups")
+}
+
+// =============================================================================
+// ── HACKATHON CORE ────────────────────────────────────────────────────────────
+// =============================================================================
+
+/// Main hackathon event record
+model Hackathon {
+  id          String          @id @default(cuid())
+  organizerId String          @map("organizer_id")
+  title       String
+  subtitle    String?
+  description String?
+  isOnline    Boolean         @default(true) @map("is_online")
+  location    String?
+  bannerUrl   String?         @map("banner_url")
+  websiteUrl  String?         @map("website_url")
+  status      HackathonStatus @default(DRAFT)
+  minTeamSize Int             @default(1)  @map("min_team_size")
+  maxTeamSize Int             @default(5)  @map("max_team_size")
+  registrationDeadline DateTime? @map("registration_deadline") @db.Timestamptz
+  startDate   DateTime        @map("start_date")  @db.Timestamptz
+  endDate     DateTime        @map("end_date")    @db.Timestamptz
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  organizer User @relation("HackathonOrganizer", fields: [organizerId], references: [id])
 
   // Relations
+  stages           Stage[]
+  tracks           Track[]
+  tags             HackathonTagRelation[]
+  awards           Award[]
+  teams            Team[]
+  userRoles        UserRole[]
   judgeAssignments JudgeAssignment[]
-  projects         Project[]
-  criteria         Criteria[]
+  mentorAvailabilities MentorAvailability[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt     @map("updated_at")
-
+  @@index([organizerId])
+  @@index([status])
+  @@index([startDate, endDate])
   @@map("hackathons")
 }
 
-model JudgeAssignment {
-  id          String @id @default(uuid())
-  hackathonId String @map("hackathon_id")
-  judgeId     String @map("judge_id")
+/// A phase / stage of a hackathon (e.g., "Submission", "Judging")
+model Stage {
+  id          String   @id @default(cuid())
+  hackathonId String   @map("hackathon_id")
+  name        String
+  description String?
+  orderIndex  Int      @map("order_index")
+  startDate   DateTime @map("start_date") @db.Timestamptz
+  endDate     DateTime @map("end_date")   @db.Timestamptz
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
 
   hackathon Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
-  judge     User      @relation(fields: [judgeId], references: [id], onDelete: Cascade)
 
-  assignedAt DateTime @default(now()) @map("assigned_at")
-
-  @@unique([hackathonId, judgeId])
-  @@map("judge_assignments")
+  @@unique([hackathonId, orderIndex])
+  @@index([hackathonId])
+  @@map("stages")
 }
 
+/// Competition track within a hackathon (e.g., "AI/ML", "Web3")
+model Track {
+  id          String  @id @default(cuid())
+  hackathonId String  @map("hackathon_id")
+  name        String
+  description String?
+  maxTeams    Int?    @map("max_teams")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  hackathon        Hackathon         @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  teams            Team[]
+  criteria         Criteria[]
+  mentorExpertises MentorExpertise[]
+
+  @@unique([hackathonId, name])
+  @@index([hackathonId])
+  @@map("tracks")
+}
+
+/// Tag vocabulary (reusable across hackathons)
+model HackathonTag {
+  id   String @id @default(cuid())
+  name String @unique
+  slug String @unique
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  hackathons HackathonTagRelation[]
+
+  @@map("hackathon_tags")
+}
+
+/// Many-to-many join between Hackathon and HackathonTag
+model HackathonTagRelation {
+  hackathonId String @map("hackathon_id")
+  tagId       String @map("tag_id")
+
+  hackathon Hackathon    @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  tag       HackathonTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([hackathonId, tagId])
+  @@map("hackathon_tag_relations")
+}
+
+/// Prize / award defined for a hackathon (1st, 2nd, track winner …)
+model Award {
+  id          String  @id @default(cuid())
+  hackathonId String  @map("hackathon_id")
+  title       String
+  description String?
+  prize       String?
+  rank        Int?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  hackathon Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+
+  @@index([hackathonId])
+  @@map("awards")
+}
+
+// =============================================================================
+// ── TEAMS ─────────────────────────────────────────────────────────────────────
+// =============================================================================
+
+/// A team participating in a hackathon
+model Team {
+  id          String     @id @default(cuid())
+  hackathonId String     @map("hackathon_id")
+  trackId     String?    @map("track_id")
+  name        String
+  description String?
+  logoUrl     String?    @map("logo_url")
+  status      TeamStatus @default(FORMING)
+  isOpen      Boolean    @default(true) @map("is_open")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  hackathon Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  track     Track?    @relation(fields: [trackId], references: [id])
+
+  members  TeamMember[]
+  invites  TeamInvite[]
+  projects Project[]
+  judgeConflicts JudgeConflict[]
+
+  @@unique([hackathonId, name])
+  @@index([hackathonId])
+  @@index([trackId])
+  @@map("teams")
+}
+
+/// User membership record inside a team
+model TeamMember {
+  id     String         @id @default(cuid())
+  teamId String         @map("team_id")
+  userId String         @map("user_id")
+  role   TeamMemberRole @default(MEMBER)
+  joinedAt DateTime     @default(now()) @map("joined_at") @db.Timestamptz
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+  @@map("team_members")
+}
+
+/// Invitation sent to a user to join a team
+model TeamInvite {
+  id          String       @id @default(cuid())
+  teamId      String       @map("team_id")
+  senderId    String       @map("sender_id")
+  receiverId  String       @map("receiver_id")
+  status      InviteStatus @default(PENDING)
+  message     String?
+  expiresAt   DateTime     @map("expires_at") @db.Timestamptz
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  team     Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  sender   User @relation("InviteSender",   fields: [senderId],   references: [id])
+  receiver User @relation("InviteReceiver", fields: [receiverId], references: [id])
+
+  @@unique([teamId, receiverId])
+  @@index([teamId])
+  @@index([receiverId])
+  @@map("team_invites")
+}
+
+// =============================================================================
+// ── PROJECTS ──────────────────────────────────────────────────────────────────
+// =============================================================================
+
+/// Project submission by a team
 model Project {
-  id          String        @id @default(uuid())
-  hackathonId String        @map("hackathon_id")
-  ownerId     String        @map("owner_id")
+  id          String        @id @default(cuid())
+  teamId      String        @map("team_id")
   title       String
   description String?
   repoUrl     String?       @map("repo_url")
   demoUrl     String?       @map("demo_url")
+  videoUrl    String?       @map("video_url")
   techStack   String[]      @map("tech_stack")
-  teamName    String?       @map("team_name")
   status      ProjectStatus @default(DRAFT)
+  submittedAt DateTime?     @map("submitted_at") @db.Timestamptz
 
-  hackathon Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
-  owner     User      @relation("ProjectOwner", fields: [ownerId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  team      Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  resources ProjectResource[]
   scores    Score[]
 
-  submittedAt DateTime? @map("submitted_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt     @map("updated_at")
-
+  @@index([teamId])
+  @@index([status])
   @@map("projects")
 }
 
+/// Additional file / link attached to a project
+model ProjectResource {
+  id        String  @id @default(cuid())
+  projectId String  @map("project_id")
+  label     String
+  url       String
+  mimeType  String? @map("mime_type")
+  sizeBytes BigInt? @map("size_bytes")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("project_resources")
+}
+
+// =============================================================================
+// ── MENTORSHIP ────────────────────────────────────────────────────────────────
+// =============================================================================
+
+/// Marks a mentor as an expert in a specific track
+model MentorExpertise {
+  id      String @id @default(cuid())
+  userId  String @map("user_id")
+  trackId String @map("track_id")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, trackId])
+  @@map("mentor_expertises")
+}
+
+/// Declares when a mentor is available during a hackathon
+model MentorAvailability {
+  id                  String   @id @default(cuid())
+  mentorId            String   @map("mentor_id")
+  hackathonId         String   @map("hackathon_id")
+  startDatetime       DateTime @map("start_datetime")      @db.Timestamptz
+  endDatetime         DateTime @map("end_datetime")        @db.Timestamptz
+  slotDurationMinutes Int      @default(30) @map("slot_duration_minutes")
+  isBlocked           Boolean  @default(false) @map("is_blocked")
+  blockReason         String?  @map("block_reason")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  mentor    User      @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  hackathon Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  slots     MentorSlot[]
+
+  @@index([mentorId, hackathonId])
+  @@map("mentor_availabilities")
+}
+
+/// Individual bookable time slot generated from a MentorAvailability block
+model MentorSlot {
+  id             String     @id @default(cuid())
+  availabilityId String     @map("availability_id")
+  startDatetime  DateTime   @map("start_datetime") @db.Timestamptz
+  endDatetime    DateTime   @map("end_datetime")   @db.Timestamptz
+  status         SlotStatus @default(AVAILABLE)
+  bookedById     String?    @map("booked_by_id")
+  teamId         String?    @map("team_id")
+  meetingUrl     String?    @map("meeting_url")
+  notes          String?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  availability MentorAvailability @relation(fields: [availabilityId], references: [id], onDelete: Cascade)
+  bookedBy     User?              @relation("SlotBooker", fields: [bookedById], references: [id])
+
+  @@index([availabilityId])
+  @@index([status])
+  @@map("mentor_slots")
+}
+
+// =============================================================================
+// ── JUDGING ───────────────────────────────────────────────────────────────────
+// =============================================================================
+
+/// Scoring criterion for a specific track
 model Criteria {
-  id          String  @id @default(uuid())
-  hackathonId String  @map("hackathon_id")
+  id          String  @id @default(cuid())
+  trackId     String  @map("track_id")
   name        String
   description String?
-  maxScore    Float   @default(10) @map("max_score")
-  weight      Float   @default(1)
+  weight      Decimal @default(1.0) @db.Decimal(5, 2)
+  maxScore    Decimal @default(10)  @map("max_score") @db.Decimal(5, 2)
 
-  hackathon Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
-  scores    Score[]
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt     @map("updated_at")
+  track  Track   @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  scores Score[]
 
+  @@index([trackId])
   @@map("criteria")
 }
 
+/// Assignment of a judge to a hackathon (optionally to a specific track)
+model JudgeAssignment {
+  id          String  @id @default(cuid())
+  judgeId     String  @map("judge_id")
+  hackathonId String  @map("hackathon_id")
+  trackId     String? @map("track_id")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  judge     User      @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  hackathon Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+
+  @@unique([judgeId, hackathonId, trackId])
+  @@index([hackathonId])
+  @@map("judge_assignments")
+}
+
+/// Conflict of interest declaration between a judge and a team
+model JudgeConflict {
+  id       String       @id @default(cuid())
+  judgeId  String       @map("judge_id")
+  teamId   String       @map("team_id")
+  type     ConflictType
+  comment  String?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  judge User @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  team  Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([judgeId, teamId])
+  @@index([judgeId])
+  @@index([teamId])
+  @@map("judge_conflicts")
+}
+
+/// Score given by a judge to a project for a specific criterion
 model Score {
-  id         String  @id @default(uuid())
-  projectId  String  @map("project_id")
+  id         String  @id @default(cuid())
   judgeId    String  @map("judge_id")
+  projectId  String  @map("project_id")
   criteriaId String  @map("criteria_id")
-  value      Float
+  scoreValue Decimal @map("score_value") @db.Decimal(5, 2)
   comment    String?
 
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  judge    User     @relation(fields: [judgeId], references: [id], onDelete: Cascade)
   project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  judge    User     @relation(fields: [judgeId], references: [id])
   criteria Criteria @relation(fields: [criteriaId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt     @map("updated_at")
-
-  @@unique([projectId, judgeId, criteriaId])
+  @@unique([judgeId, projectId, criteriaId])
+  @@index([projectId])
+  @@index([judgeId])
   @@map("scores")
 }
