@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { cn } from '@/shared/lib/utils';
-import { type JudgingProject, type JudgingStats } from '@/shared/api/judging.service';
+import { type JudgingProject, type JudgeStats } from '@/shared/api/judging.service';
 import { Card, CardContent, Badge, Button } from '@/shared/ui';
 import { 
   CheckCircle2, 
@@ -14,16 +14,16 @@ import { ScoreSheetModal } from './score-sheet-modal';
 
 interface JudgingKanbanProps {
   projects: JudgingProject[];
-  judgeStats?: JudgingStats;
+  judgeStats?: JudgeStats;
   conflicts?: any[];
 }
 
 export function JudgingKanban({ projects, judgeStats, conflicts = [] }: JudgingKanbanProps) {
   const [selectedProject, setSelectedProject] = useState<JudgingProject | null>(null);
 
-  // Divide projects into Pending and Scored based on scores array
-  const pendingProjects = projects.filter(p => p.scores.length === 0);
-  const scoredProjects = projects.filter(p => p.scores.length > 0);
+  // Divide projects into Pending and Scored based on isScored flag
+  const pendingProjects = projects.filter(p => !p.isScored && !p.hasConflict);
+  const scoredProjects = projects.filter(p => p.isScored);
 
   const columns = [
     { 
@@ -65,7 +65,7 @@ export function JudgingKanban({ projects, judgeStats, conflicts = [] }: JudgingK
 
           <div className="flex-1 space-y-4 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
             {col.items.map(project => {
-                const isConflicted = conflicts.some(c => c.teamId === project.team.id);
+                const isConflicted = conflicts.some(c => c.teamId === project.team?.name);
                 return (
                     <Card key={project.id} className="group border-primary/5 hover:border-primary/20 transition-all hover:shadow-lg hover:shadow-primary/5 cursor-pointer bg-white overflow-hidden relative" onClick={() => setSelectedProject(project)}>
                         <CardContent className="p-5 space-y-4">
@@ -76,7 +76,7 @@ export function JudgingKanban({ projects, judgeStats, conflicts = [] }: JudgingK
                                 <h4 className="font-bold text-lg leading-tight group-hover:text-primary transition-colors">{project.title}</h4>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                     <Users className="h-3 w-3" />
-                                    <span>{project.team.name}</span>
+                                    <span>{project.team?.name ?? '—'}</span>
                                 </div>
                             </div>
                             
@@ -86,7 +86,7 @@ export function JudgingKanban({ projects, judgeStats, conflicts = [] }: JudgingK
 
                             <div className="flex items-center justify-between pt-2">
                                 <div className="flex items-center gap-3">
-                                   {project.scores.length > 0 ? (
+                                   {project.isScored ? (
                                        <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/10 hover:bg-emerald-500/20 text-[10px] font-bold h-6 gap-1">
                                           <ClipboardCheck className="h-3 w-3" /> Scored
                                        </Badge>
@@ -98,7 +98,7 @@ export function JudgingKanban({ projects, judgeStats, conflicts = [] }: JudgingK
                                 </div>
                                 
                                 <Button size="sm" variant="ghost" className="h-8 rounded-lg group-hover:bg-primary group-hover:text-white transition-all text-xs border border-transparent group-hover:border-primary">
-                                    {project.scores.length > 0 ? 'Edit Score' : 'Evaluate'}
+                                    {project.isScored ? 'Edit Score' : 'Evaluate'}
                                 </Button>
                             </div>
                         </CardContent>
@@ -122,7 +122,7 @@ export function JudgingKanban({ projects, judgeStats, conflicts = [] }: JudgingK
           projectId={selectedProject.id}
           projectTitle={selectedProject.title}
           judgeStats={judgeStats}
-          existingScores={selectedProject.scores}
+          existingScores={[]}
           conflicts={conflicts}
         />
       )}

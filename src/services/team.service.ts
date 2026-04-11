@@ -186,6 +186,23 @@ export class TeamService {
     }
 
     return this.app.prisma.$transaction(async (tx) => {
+      // Ensure the user is registered for the hackathon as a participant
+      await tx.userRole.upsert({
+        where: {
+          userId_roleName_hackathonId: {
+            userId,
+            roleName: RoleName.PARTICIPANT,
+            hackathonId: invite.team.hackathonId,
+          }
+        },
+        update: {},
+        create: {
+          userId,
+          roleName: RoleName.PARTICIPANT,
+          hackathonId: invite.team.hackathonId,
+        }
+      });
+
       const membership = await tx.teamMember.create({
         data: {
           teamId: invite.teamId,
@@ -199,7 +216,7 @@ export class TeamService {
         data: { usesCount: { increment: 1 } },
       });
 
-      return membership;
+      return { membership, hackathonId: invite.team.hackathonId };
     });
   }
 
@@ -234,6 +251,76 @@ export class TeamService {
 
     return this.app.prisma.teamMember.delete({
       where: { teamId_userId: { teamId, userId: targetUserId } },
+    });
+  }
+
+  async transferCaptaincy(teamId: string, currentCaptainId: string, newCaptainId: string) {
+    await this.ensureCaptain(teamId, currentCaptainId);
+
+    const newCaptainRole = await this.app.prisma.teamMember.findUnique({
+      where: { teamId_userId: { teamId, userId: newCaptainId } },
+    });
+
+    if (!newCaptainRole) {
+      throw new BadRequestError('The target user is not a member of this team');
+    }
+
+    return this.app.prisma.$transaction(async (tx) => {
+      // Demote current captain
+      await tx.teamMember.update({
+        where: { teamId_userId: { teamId, userId: currentCaptainId } },
+        data: { role: TeamMemberRole.MEMBER },
+      });
+
+      // Promote new captain
+      const updatedNewCaptain = await tx.teamMember.update({
+        where: { teamId_userId: { teamId, userId: newCaptainId } },
+        data: { role: TeamMemberRole.CAPTAIN },
+      });
+
+      return updatedNewCaptain;
+    });
+  }
+
+  async leaveTeam(teamId: string, userId: string) {
+    const membership = await this.app.prisma.teamMember.findUnique({
+      where: { teamId_userId: { teamId, userId } },
+    });
+
+    if (!membership) {
+      throw new BadRequestError('You are not a member of this team');
+    }
+
+    const teamMembers = await this.app.prisma.teamMember.findMany({
+      where: { teamId },
+      orderBy: { joinedAt: 'asc' }, // Order by earliest joined
+    });
+
+    return this.app.prisma.$transaction(async (tx) => {
+      // If user is the last member, delete the entire team
+      if (teamMembers.length <= 1) {
+        await tx.team.delete({ where: { id: teamId } });
+        return { deleted: true };
+      }
+
+      // If user is a captain and there are other members, auto-transfer captaincy
+      if (membership.role === TeamMemberRole.CAPTAIN) {
+        // Find the next eligible captain (the oldest joined member who is not the current captain)
+        const nextCaptain = teamMembers.find(m => m.userId !== userId);
+        if (nextCaptain) {
+          await tx.teamMember.update({
+            where: { teamId_userId: { teamId, userId: nextCaptain.userId } },
+            data: { role: TeamMemberRole.CAPTAIN },
+          });
+        }
+      }
+
+      // Finally, remove the member
+      await tx.teamMember.delete({
+        where: { teamId_userId: { teamId, userId } },
+      });
+
+      return { deleted: false };
     });
   }
 

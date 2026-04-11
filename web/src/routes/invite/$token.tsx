@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { teamApi } from '@/shared/api/team.service';
 import { 
   Card, 
@@ -28,13 +28,15 @@ function InviteJoinPage() {
   const navigate = useNavigate();
 
   // In a real app, we might have a dedicated endpoint to get invite info by token
-  // For now, we'll try to join or just show a generic "Join this team" page
-  
+  const queryClient = useQueryClient();
+
   const joinMutation = useMutation({
     mutationFn: () => teamApi.join(token),
-    onSuccess: (data: any) => {
+    onSuccess: async (data: any) => {
+      await queryClient.invalidateQueries();
       toast.success('Successfully joined the team!');
-      navigate({ to: '/_protected/teams/$teamId' as any, params: { teamId: data.id } as any });
+      // Force a hard reload to completely clear any stale client-side state
+      window.location.href = `/hackathons/${data.hackathonId}`;
     },
     onError: (error: any) => {
       const status = error.response?.status;

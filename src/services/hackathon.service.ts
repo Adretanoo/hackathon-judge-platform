@@ -233,6 +233,30 @@ export class HackathonService {
     return { message: 'Successfully registered for hackathon' };
   }
 
+  async leavePlatform(hackathonId: string, userId: string, teamService: import('./team.service').TeamService) {
+    const hackathon = await this.getHackathonById(hackathonId);
+
+    if (hackathon.status !== HackathonStatus.DRAFT && hackathon.status !== HackathonStatus.PUBLISHED && hackathon.status !== HackathonStatus.REGISTRATION_OPEN) {
+      throw new BadRequestError('Cannot leave the hackathon after judging/competition has started');
+    }
+
+    // Attempt to gracefully remove from team if they are in one
+    const membership = await this.prisma.teamMember.findFirst({
+      where: { userId, team: { hackathonId } }
+    });
+
+    if (membership) {
+      await teamService.leaveTeam(membership.teamId, userId);
+    }
+
+    // Finally, remove the participant role
+    await this.prisma.userRole.delete({
+      where: { userId_roleName_hackathonId: { userId, roleName: RoleName.PARTICIPANT, hackathonId } }
+    });
+
+    return { success: true };
+  }
+
   async listParticipants(hackathonId: string) {
     const participants = await this.prisma.userRole.findMany({
       where: { hackathonId, roleName: RoleName.PARTICIPANT },

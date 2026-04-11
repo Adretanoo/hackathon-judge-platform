@@ -1,57 +1,97 @@
-import { authClient as api } from './auth-client';
+/**
+ * @file judging.service.ts
+ * @description API client for the Judge Panel (assignments, scores, stats)
+ */
+import { authClient } from './auth-client';
 
-export interface JudgingStats {
-  mean: number;
-  stdDev: number;
-  count: number;
+export interface JudgingHackathon {
+  id: string;
+  title: string;
+  status: string;
+  startDate: string;
+  endDate: string;
 }
 
 export interface JudgingProject {
   id: string;
   title: string;
-  description: string;
   status: string;
-  team: {
-    id: string;
-    name: string;
-    hackathonId: string;
-    trackId: string | null;
-  };
-  scores: Array<{
-    id: string;
-    scoreValue: number;
-    criteriaId: string;
-  }>;
+  team?: { name: string; trackId?: string };
+  repoUrl?: string;
+  demoUrl?: string;
+  description?: string;
+  hasConflict?: boolean;
+  isScored?: boolean;
+  myScore?: number | null;
+}
+
+export interface ProjectCriterion {
+  id: string;
+  name: string;
+  description?: string;
+  weight: number;
+  maxScore: number;
+  orderIndex?: number;
+}
+
+export interface ScoreItem {
+  criteriaId: string;
+  scoreValue: number;
+  comment?: string;
+}
+
+export interface JudgeStats {
+  totalAssigned: number;
+  totalScored: number;
+  pendingCount: number;
+  averageScore?: number;
 }
 
 export const judgingApi = {
-  listHackathons: async () => {
-    const { data } = await api.get<{ success: boolean; data: any[] }>('/judging/hackathons');
+  /** List hackathons where the current user is assigned as a judge */
+  listMyHackathons: async (): Promise<JudgingHackathon[]> => {
+    const { data } = await authClient.get('/judging/hackathons');
+    return data.data ?? [];
+  },
+
+  /** List projects assigned to me for a given hackathon */
+  listMyProjects: async (hackathonId: string): Promise<{ items: JudgingProject[]; total: number }> => {
+    const { data } = await authClient.get('/judging/projects', {
+      params: { hackathonId },
+    });
+    return data.data ?? { items: [], total: 0 };
+  },
+
+  /** Get the criteria sheet for a project (derived from team's track) */
+  getProjectCriteria: async (projectId: string): Promise<ProjectCriterion[]> => {
+    const { data } = await authClient.get(`/projects/${projectId}/criteria`);
+    return data.data ?? [];
+  },
+
+  /** Get a single project's full details */
+  getProjectDetail: async (projectId: string): Promise<any> => {
+    const { data } = await authClient.get(`/projects/${projectId}`);
     return data.data;
   },
 
-  listProjects: async (hackathonId: string) => {
-    const { data } = await api.get<{ success: boolean; data: { items: JudgingProject[] } }>(
-      `/judging/projects?hackathonId=${hackathonId}`
-    );
-    return data.data.items;
+  /** Get my existing scores for a project */
+  getMyScores: async (projectId: string, judgeId: string): Promise<ScoreItem[]> => {
+    const { data } = await authClient.get(`/projects/${projectId}/scores`, {
+      params: { judgeId },
+    });
+    // Normalize: return raw score items if present
+    return data.data?.scores ?? data.data ?? [];
   },
 
-  getStats: async () => {
-    const { data } = await api.get<{ success: boolean; data: JudgingStats }>('/judging/stats');
+  /** Submit (or update) scores for a project */
+  submitScores: async (projectId: string, scores: ScoreItem[]): Promise<any> => {
+    const { data } = await authClient.post(`/projects/${projectId}/scores`, { scores });
     return data.data;
   },
 
-  submitScores: async (projectId: string, scores: Array<{ criteriaId: string; scoreValue: number; comment?: string }>) => {
-    const { data } = await api.post<{ success: boolean; data: any }>(
-      `/projects/${projectId}/scores`,
-      { scores }
-    );
-    return data.data;
+  /** Get judge statistics (total assigned, scored, pending) */
+  getStats: async (): Promise<JudgeStats> => {
+    const { data } = await authClient.get('/judging/stats');
+    return data.data ?? { totalAssigned: 0, totalScored: 0, pendingCount: 0 };
   },
-  
-  getConflicts: async (hackathonId: string) => {
-    const { data } = await api.get<{ success: boolean; data: any[] }>(`/hackathons/${hackathonId}/conflicts`);
-    return data.data;
-  }
 };

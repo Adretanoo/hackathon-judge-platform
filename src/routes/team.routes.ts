@@ -131,6 +131,35 @@ export async function teamRoutes(fastify: FastifyInstance) {
     controller.join as any
   );
 
+  /** Leave team */
+  app.post(
+    '/teams/:teamId/leave',
+    {
+      preHandler: [app.authenticate],
+      schema: {
+        tags: ['Teams'],
+        summary: 'Leave the current team',
+        params: teamParamsSchema,
+      },
+    },
+    controller.leaveTeam as any
+  );
+
+  /** Transfer captaincy */
+  app.post(
+    '/teams/:teamId/transfer-captain',
+    {
+      preHandler: [app.authenticate],
+      schema: {
+        tags: ['Teams'],
+        summary: 'Transfer captaincy to another member',
+        params: teamParamsSchema,
+        body: z.object({ newCaptainId: z.string() }),
+      },
+    },
+    controller.transferCaptaincy as any
+  );
+
   /** Remove member */
   app.delete(
     '/teams/:teamId/members/:userId',

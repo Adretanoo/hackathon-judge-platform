@@ -14,6 +14,7 @@ import { judgeConflictRoutes } from './judgeConflict.routes';
 import { judgingRoutes } from './judging.routes';
 import { exportRoutes } from './export.routes';
 import { configRoutes } from './config.routes';
+import { participantRoutes } from './participant.routes';
 import { env } from '../config';
 
 /**
@@ -38,6 +39,7 @@ export async function registerRoutes(app: any): Promise<void> {
       await api.register(exportRoutes,        { prefix: '/hackathons' });
       await api.register(userRoutes,      { prefix: '/users' });
       await api.register(configRoutes,    { prefix: '/config' });
+      await api.register(participantRoutes, { prefix: '/participant' });
     },
     { prefix: env.API_PREFIX },
   );

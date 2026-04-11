@@ -30,6 +30,7 @@ import {
 import {
   createCriteriaHandler,
   getCriteriaForHackathonHandler,
+  deleteCriteriaHandler,
 } from '../controllers/criteria.controller';
 import {
   createHackathonSchema,
@@ -375,6 +376,23 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
       },
     },
     getCriteriaForHackathonHandler as any
+  );
+
+  app.delete(
+    '/:id/criteria/:criterionId',
+    {
+      schema: {
+        tags: ['Hackathons', 'Criteria'],
+        summary: 'Delete a judging criterion',
+        security: [{ BearerAuth: [] }],
+        response: { 200: genericSuccessSchema, 404: errorSchema },
+      },
+      preHandler: [
+        app.authenticate,
+        hasRole([RoleName.ORGANIZER, RoleName.GLOBAL_ADMIN], { context: 'hackathon', paramName: 'id' }),
+      ],
+    },
+    deleteCriteriaHandler as any
   );
 
   // ─── Participants & Judges ───────────────────────────────────────────────

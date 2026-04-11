@@ -22,6 +22,8 @@ import {
   Users,
   Code2,
   ShieldAlert,
+  ClipboardList,
+  UserSearch,
 } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 
@@ -40,6 +42,7 @@ import {
   ProjectsTab,
   ConflictsTab,
   ExportTab,
+  CriteriaTab,
   EditHackathonModal,
 } from '@/routes/_protected/organizer/hackathons/-details';
 
@@ -137,8 +140,14 @@ export function OrganizerAdminPanel({ hackathonId }: OrganizerAdminPanelProps) {
             <TabsTrigger value="tracks" className="gap-2 px-5 rounded-xl font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <Layout className="h-4 w-4" /> Треки
             </TabsTrigger>
+            <TabsTrigger value="criteria" className="gap-2 px-5 rounded-xl font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <ClipboardList className="h-4 w-4" /> Критерії
+            </TabsTrigger>
             <TabsTrigger value="teams" className="gap-2 px-5 rounded-xl font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <Users className="h-4 w-4" /> Команди
+            </TabsTrigger>
+            <TabsTrigger value="participants" className="gap-2 px-5 rounded-xl font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <UserSearch className="h-4 w-4" /> Учасники
             </TabsTrigger>
             <TabsTrigger value="judges" className="gap-2 px-5 rounded-xl font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <Gavel className="h-4 w-4" /> Судді
@@ -167,10 +176,13 @@ export function OrganizerAdminPanel({ hackathonId }: OrganizerAdminPanelProps) {
         <TabsContent value="tracks" className="focus-visible:ring-0 mt-2">
           <TracksTab hackathon={hackathon} />
         </TabsContent>
+        <TabsContent value="criteria" className="focus-visible:ring-0 mt-2">
+          <CriteriaTab hackathon={hackathon} />
+        </TabsContent>
         <TabsContent value="teams" className="focus-visible:ring-0 mt-2">
           <TeamsTab hackathon={hackathon} />
         </TabsContent>
-        <TabsContent value="free-agents" className="focus-visible:ring-0 mt-2">
+        <TabsContent value="participants" className="focus-visible:ring-0 mt-2">
           <FreeAgentsTab hackathon={hackathon} />
         </TabsContent>
         <TabsContent value="projects" className="focus-visible:ring-0 mt-2">

@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { 
   Card, 
   CardHeader, 
@@ -15,6 +16,7 @@ import {
   Rocket,
   ArrowRight
 } from 'lucide-react';
+import { hackathonApi } from '@/shared/api/hackathon.service';
 import type { Hackathon } from '@/shared/api/hackathon.service';
 
 interface OverviewTabProps {
@@ -22,6 +24,44 @@ interface OverviewTabProps {
 }
 
 export function OverviewTab({ hackathon }: OverviewTabProps) {
+  const { data: participants = [] } = useQuery({
+    queryKey: ['hackathon', hackathon.id, 'participants'],
+    queryFn: async () => {
+      const { authClient } = await import('@/shared/api/auth-client');
+      const { data } = await authClient.get(`/hackathons/${hackathon.id}/participants`);
+      return data.data ?? [];
+    },
+  });
+
+  const { data: teams } = useQuery({
+    queryKey: ['hackathon', hackathon.id, 'teams'],
+    queryFn: async () => {
+      const { authClient } = await import('@/shared/api/auth-client');
+      const { data } = await authClient.get(`/hackathons/${hackathon.id}/teams`);
+      return data.data;
+    },
+  });
+
+  const { data: judges = [] } = useQuery({
+    queryKey: ['hackathon', hackathon.id, 'judges'],
+    queryFn: () => hackathonApi.listJudges(hackathon.id),
+  });
+
+  const { data: projects } = useQuery({
+    queryKey: ['hackathon', hackathon.id, 'projects'],
+    queryFn: async () => {
+      const { authClient } = await import('@/shared/api/auth-client');
+      const { data } = await authClient.get(`/projects`, { params: { hackathonId: hackathon.id } });
+      return data.data;
+    },
+  });
+
+  const statsItems = [
+    { label: 'Учасники', value: participants?.length ?? '—' },
+    { label: 'Команди', value: teams?.total ?? teams?.items?.length ?? '—' },
+    { label: 'Проєкти', value: projects?.total ?? projects?.items?.length ?? '—' },
+    { label: 'Судді', value: judges?.length ?? '—' },
+  ];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -114,23 +154,13 @@ export function OverviewTab({ hackathon }: OverviewTabProps) {
           <CardHeader>
             <CardTitle className="text-sm uppercase tracking-widest text-muted-foreground">Quick Stats</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex justify-between items-end border-b pb-4">
-              <span className="text-sm text-muted-foreground font-medium">Participants</span>
-              <span className="text-2xl font-bold tracking-tight">0</span>
-            </div>
-            <div className="flex justify-between items-end border-b pb-4">
-              <span className="text-sm text-muted-foreground font-medium">Teams</span>
-              <span className="text-2xl font-bold tracking-tight">0</span>
-            </div>
-            <div className="flex justify-between items-end border-b pb-4">
-              <span className="text-sm text-muted-foreground font-medium">Projects</span>
-              <span className="text-2xl font-bold tracking-tight">0</span>
-            </div>
-            <div className="flex justify-between items-end">
-              <span className="text-sm text-muted-foreground font-medium">Judges</span>
-              <span className="text-2xl font-bold tracking-tight">0</span>
-            </div>
+          <CardContent className="space-y-4">
+            {statsItems.map((item, i) => (
+              <div key={i} className={`flex justify-between items-end ${i < statsItems.length - 1 ? 'border-b pb-4' : ''}`}>
+                <span className="text-sm text-muted-foreground font-medium">{item.label}</span>
+                <span className="text-2xl font-black tracking-tight">{item.value}</span>
+              </div>
+            ))}
           </CardContent>
         </Card>
         

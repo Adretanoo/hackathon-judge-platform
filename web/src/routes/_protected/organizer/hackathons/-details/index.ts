@@ -1,6 +1,7 @@
 export * from './overview-tab';
 export * from './stages-tab';
 export * from './tracks-tab';
+export * from './criteria-tab';
 export * from './judges-tab';
 export * from './leaderboard-tab';
 export * from './teams-tab';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { hackathonApi } from '@/shared/api/hackathon.service';
@@ -12,6 +12,7 @@ import {
   Input,
   Label
 } from '@/shared/ui';
+import { DialogDescription } from '@/shared/ui/dialog';
 import { Textarea } from '@/shared/ui/textarea';
 import { ArrowLeft, Save, Percent, Award } from 'lucide-react';
 import { toast } from 'sonner';
@@ -34,7 +35,7 @@ export function CriteriaModal({ isOpen, onClose, hackathonId, trackId }: Criteri
     }
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen) {
       reset({ name: '', description: '', weight: 1, maxScore: 10 });
     }
@@ -67,6 +68,9 @@ export function CriteriaModal({ isOpen, onClose, hackathonId, trackId }: Criteri
             <DialogTitle className="text-xl font-black">
               Додати критерій оцінювання
             </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground">
+              Вкажіть назву, вагу та максимальний бал для нового критерію.
+            </DialogDescription>
           </div>
           <Button variant="ghost" onClick={onClose} className="gap-2">
             <ArrowLeft className="h-4 w-4" /> Повернутися назад

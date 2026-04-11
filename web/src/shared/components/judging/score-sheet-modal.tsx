@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { type JudgingStats, judgingApi } from '@/shared/api/judging.service';
+import { type JudgeStats, judgingApi } from '@/shared/api/judging.service';
 import { projectApi } from '@/shared/api/project.service';
 import {
   Dialog,
@@ -30,7 +30,7 @@ interface ScoreSheetModalProps {
   projectTitle: string;
   isOpen: boolean;
   onClose: () => void;
-  judgeStats?: JudgingStats;
+  judgeStats?: JudgeStats;
   existingScores?: Array<{ criteriaId: string; scoreValue: number; comment?: string }>;
   conflicts?: any[];
 }
@@ -80,7 +80,8 @@ export function ScoreSheetModal({
   const zScorePreview = useMemo(() => {
     if (!judgeStats || !criteria || criteria.length === 0) return 0;
     const avgScore = totalRaw / criteria.reduce((sum: number, c: any) => sum + Number(c.weight), 0);
-    return (avgScore - judgeStats.mean) / (judgeStats.stdDev || 1);
+    const mean = judgeStats.averageScore ?? 5;
+    return (avgScore - mean) / 2.5; // simplified z-score estimate
   }, [totalRaw, criteria, judgeStats]);
 
   const handleSubmit = () => {

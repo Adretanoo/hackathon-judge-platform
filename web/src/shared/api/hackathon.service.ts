@@ -129,14 +129,29 @@ export const hackathonApi = {
     return data.data;
   },
 
+  getTracks: async (id: string) => {
+    const { data } = await authClient.get(`${API_BASE}/${id}/tracks`);
+    return data.data ?? [];
+  },
+
   // ─── Criteria ────────────────────────────────────────────────────────────────
   listCriteria: async (id: string) => {
     const { data } = await authClient.get(`${API_BASE}/${id}/criteria`);
     return data.data;
   },
 
+  getCriteria: async (id: string) => {
+    const { data } = await authClient.get(`${API_BASE}/${id}/criteria`);
+    return data.data ?? [];
+  },
+
   createCriteria: async (id: string, payload: any) => {
     const { data } = await authClient.post(`${API_BASE}/${id}/criteria`, payload);
+    return data.data;
+  },
+
+  deleteCriteria: async (hackathonId: string, criterionId: string) => {
+    const { data } = await authClient.delete(`${API_BASE}/${hackathonId}/criteria/${criterionId}`);
     return data.data;
   },
 

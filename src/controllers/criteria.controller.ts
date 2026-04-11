@@ -24,3 +24,14 @@ export async function getProjectCriteriaHandler(req: FastifyRequest<{ Params: { 
   const criteriaList = await service.getCriteriaForProject(req.params.projectId);
   return reply.status(200).send(successResponse(criteriaList));
 }
+
+export async function deleteCriteriaHandler(
+  req: FastifyRequest<{ Params: { id: string; criterionId: string } }>,
+  reply: FastifyReply,
+) {
+  const service = new CriteriaService(req.server);
+  const userId = (req.user as any)!.sub;
+  const hasGlobalAdmin = (req.user as any)!.role === RoleName.GLOBAL_ADMIN;
+  const result = await service.deleteCriteria(req.params.id, req.params.criterionId, userId, hasGlobalAdmin);
+  return reply.status(200).send(successResponse(result));
+}

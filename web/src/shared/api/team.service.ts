@@ -75,5 +75,15 @@ export const teamApi = {
   removeMember: async (teamId: string, userId: string) => {
     const { data } = await authClient.delete(`/teams/${teamId}/members/${userId}`);
     return data.data;
-  }
+  },
+
+  leave: async (teamId: string) => {
+    const { data } = await authClient.post(`/teams/${teamId}/leave`);
+    return data.data;
+  },
+
+  transferCaptaincy: async (teamId: string, newCaptainId: string) => {
+    const { data } = await authClient.post(`/teams/${teamId}/transfer-captain`, { newCaptainId });
+    return data.data;
+  },
 };

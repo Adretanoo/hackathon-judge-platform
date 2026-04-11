@@ -89,6 +89,27 @@ export class TeamController {
     return reply.send(successResponse({ message: 'Member removed successfully' }));
   };
 
+  leaveTeam = async (
+    req: FastifyRequest<{ Params: { teamId: string } }>,
+    reply: FastifyReply
+  ) => {
+    const { teamId } = req.params;
+    const userId = (req.user as any).sub;
+    const result = await this.teamService.leaveTeam(teamId, userId);
+    return reply.send(successResponse(result));
+  };
+
+  transferCaptaincy = async (
+    req: FastifyRequest<{ Params: { teamId: string }, Body: { newCaptainId: string } }>,
+    reply: FastifyReply
+  ) => {
+    const { teamId } = req.params;
+    const { newCaptainId } = req.body;
+    const callerId = (req.user as any).sub;
+    const result = await this.teamService.transferCaptaincy(teamId, callerId, newCaptainId);
+    return reply.send(successResponse(result));
+  };
+
   listFreeAgents = async (
     req: FastifyRequest<{ Params: { hackathonId: string }; Querystring: FreeAgentQuery }>,
     reply: FastifyReply

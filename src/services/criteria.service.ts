@@ -1,16 +1,26 @@
 import { FastifyInstance } from 'fastify';
 import { CreateCriteriaPayload } from '../schemas/criteria.schema';
 import { NotFoundError, ForbiddenError } from '../utils/errors';
-
+import { RoleName } from '@prisma/client';
 
 export class CriteriaService {
   constructor(private app: FastifyInstance) {}
 
   /**
    * Helper to verify if the user is authorized to manage the hackathon.
+   * Checks DB for GLOBAL_ADMIN so it works even when JWT is stale.
    */
   private async requireHackathonAdmin(hackathonId: string, userId: string, hasGlobalAdmin: boolean): Promise<void> {
+    // Fast path: JWT already says GLOBAL_ADMIN
     if (hasGlobalAdmin) return;
+
+    // DB fallback: check if user has GLOBAL_ADMIN role in DB
+    const dbAdminRole = await this.app.prisma.userRole.findFirst({
+      where: { userId, roleName: RoleName.GLOBAL_ADMIN, hackathonId: null },
+    });
+    if (dbAdminRole) return;
+
+    // Check if user is the organizer of this hackathon
     const hackathon = await this.app.prisma.hackathon.findUnique({ where: { id: hackathonId } });
     if (!hackathon) throw new NotFoundError('Hackathon not found');
     if (hackathon.organizerId !== userId) {
@@ -43,6 +53,25 @@ export class CriteriaService {
   }
 
   /**
+   * Delete a criterion by ID (organizer or GLOBAL_ADMIN only)
+   */
+  async deleteCriteria(hackathonId: string, criterionId: string, userId: string, hasGlobalAdmin: boolean) {
+    await this.requireHackathonAdmin(hackathonId, userId, hasGlobalAdmin);
+
+    const criterion = await this.app.prisma.criteria.findUnique({
+      where: { id: criterionId },
+      include: { track: { select: { hackathonId: true } } },
+    });
+
+    if (!criterion || criterion.track.hackathonId !== hackathonId) {
+      throw new NotFoundError('Criterion not found in this hackathon');
+    }
+
+    await this.app.prisma.criteria.delete({ where: { id: criterionId } });
+    return { deleted: true };
+  }
+
+  /**
    * Get criteria for a hackathon
    */
   async getCriteriaForHackathon(hackathonId: string) {
@@ -67,7 +96,6 @@ export class CriteriaService {
     
     if (!project) throw new NotFoundError('Project not found');
     
-    // If the team hasn't selected a track, we return an empty array or handle error
     if (!project.team.trackId) {
       return [];
     }

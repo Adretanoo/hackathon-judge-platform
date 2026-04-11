@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Card, Button } from '@/shared/ui';
-import { Users, Plus } from 'lucide-react';
-import { CreateTeamModal } from '@/features/teams/components/CreateTeamModal';
+import { Users, Plus, Globe } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { authClient } from '@/shared/api/auth-client';
 
@@ -11,12 +10,11 @@ export const Route = createFileRoute('/_protected/teams/')({
 });
 
 function TeamsDashboardPage() {
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const { data: teams, isLoading } = useQuery({
-    queryKey: ['user', 'teams'],
+    queryKey: ['participant', 'teams'],
     queryFn: async () => {
-      const { data } = await authClient.get('/user/teams');
+      const { data } = await authClient.get('/participant/teams');
       return data.data || [];
     }
   });
@@ -28,8 +26,10 @@ function TeamsDashboardPage() {
           <h1 className="text-3xl font-bold tracking-tight">Мої Команди</h1>
           <p className="text-muted-foreground">Керуйте командами та шукайте нових учасників.</p>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)} className="gap-2 font-bold">
-           <Plus className="w-4 h-4" /> Створити команду
+        <Button asChild className="gap-2 font-bold">
+           <Link to="/hackathons">
+             <Globe className="w-4 h-4" /> Перейти до хакатонів
+           </Link>
         </Button>
       </div>
 
@@ -46,8 +46,13 @@ function TeamsDashboardPage() {
                       <h3 className="font-bold text-xl">{t.name}</h3>
                    </div>
                    <p className="text-muted-foreground text-sm line-clamp-2 mb-4">{t.description || 'Без опису'}</p>
+                   {t.hackathon && (
+                     <div className="mb-4">
+                       <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-md">Хакатон: {t.hackathon.title}</span>
+                     </div>
+                   )}
                    <Button variant="outline" asChild className="w-full">
-                       <Link to="/teams/$teamId" params={{ teamId: t.id }}>Відкрити профіль команди</Link>
+                       <Link to="/hackathons/$hackathonId" params={{ hackathonId: t.hackathonId }}>Відкрити профіль команди</Link>
                    </Button>
                 </Card>
             ))}
@@ -57,18 +62,13 @@ function TeamsDashboardPage() {
              <Users className="w-12 h-12 opacity-20" />
              <div>
                 <p className="font-bold text-foreground">Ви ще не у команді</p>
-                <p className="text-sm">Створіть нову або приєднайтеся за інвайт-лінком.</p>
+                <p className="text-sm">Щоб створити нову команду, перейдіть до робочого простору вашого хакатону.</p>
              </div>
-             <Button onClick={() => setIsCreateOpen(true)}>Створити команду</Button>
+             <Button asChild>
+               <Link to="/hackathons">Перейти до списку хакатонів</Link>
+             </Button>
          </div>
       )}
-
-      {/* For creating a team, we ideally need a Hackathon ID context. For now we pass a dummy or require them to join a hackathon first. */}
-      <CreateTeamModal 
-        isOpen={isCreateOpen} 
-        onClose={() => setIsCreateOpen(false)} 
-        hackathonId="GLOBAL_OR_SELECT_IN_MODAL" 
-      />
     </div>
   );
 }

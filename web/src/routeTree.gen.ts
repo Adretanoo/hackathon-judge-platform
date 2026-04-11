@@ -20,11 +20,13 @@ import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dash
 import { Route as ProtectedTeamsIndexRouteImport } from './routes/_protected/teams/index'
 import { Route as ProtectedProjectsIndexRouteImport } from './routes/_protected/projects/index'
 import { Route as ProtectedJudgingIndexRouteImport } from './routes/_protected/judging/index'
+import { Route as ProtectedHackathonsIndexRouteImport } from './routes/_protected/hackathons/index'
 import { Route as ProtectedAdminIndexRouteImport } from './routes/_protected/admin/index'
 import { Route as ProtectedTeamsTeamIdRouteImport } from './routes/_protected/teams/$teamId'
 import { Route as ProtectedProjectsProjectIdRouteImport } from './routes/_protected/projects/$projectId'
 import { Route as ProtectedOrganizerJudgesRouteImport } from './routes/_protected/organizer/judges'
 import { Route as ProtectedOrganizerExportsRouteImport } from './routes/_protected/organizer/exports'
+import { Route as ProtectedHackathonsHackathonIdRouteImport } from './routes/_protected/hackathons/$hackathonId'
 import { Route as ProtectedDashboardProjectsRouteImport } from './routes/_protected/dashboard/projects'
 import { Route as ProtectedAdminUsersRouteImport } from './routes/_protected/admin/users'
 import { Route as ProtectedAdminTeamsRouteImport } from './routes/_protected/admin/teams'
@@ -88,6 +90,12 @@ const ProtectedJudgingIndexRoute = ProtectedJudgingIndexRouteImport.update({
   path: '/judging/',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedHackathonsIndexRoute =
+  ProtectedHackathonsIndexRouteImport.update({
+    id: '/hackathons/',
+    path: '/hackathons/',
+    getParentRoute: () => ProtectedRoute,
+  } as any)
 const ProtectedAdminIndexRoute = ProtectedAdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
@@ -114,6 +122,12 @@ const ProtectedOrganizerExportsRoute =
   ProtectedOrganizerExportsRouteImport.update({
     id: '/organizer/exports',
     path: '/organizer/exports',
+    getParentRoute: () => ProtectedRoute,
+  } as any)
+const ProtectedHackathonsHackathonIdRoute =
+  ProtectedHackathonsHackathonIdRouteImport.update({
+    id: '/hackathons/$hackathonId',
+    path: '/hackathons/$hackathonId',
     getParentRoute: () => ProtectedRoute,
   } as any)
 const ProtectedDashboardProjectsRoute =
@@ -193,11 +207,13 @@ export interface FileRoutesByFullPath {
   '/admin/teams': typeof ProtectedAdminTeamsRoute
   '/admin/users': typeof ProtectedAdminUsersRoute
   '/dashboard/projects': typeof ProtectedDashboardProjectsRoute
+  '/hackathons/$hackathonId': typeof ProtectedHackathonsHackathonIdRoute
   '/organizer/exports': typeof ProtectedOrganizerExportsRoute
   '/organizer/judges': typeof ProtectedOrganizerJudgesRoute
   '/projects/$projectId': typeof ProtectedProjectsProjectIdRoute
   '/teams/$teamId': typeof ProtectedTeamsTeamIdRoute
   '/admin/': typeof ProtectedAdminIndexRoute
+  '/hackathons/': typeof ProtectedHackathonsIndexRoute
   '/judging/': typeof ProtectedJudgingIndexRoute
   '/projects/': typeof ProtectedProjectsIndexRoute
   '/teams/': typeof ProtectedTeamsIndexRoute
@@ -220,11 +236,13 @@ export interface FileRoutesByTo {
   '/admin/teams': typeof ProtectedAdminTeamsRoute
   '/admin/users': typeof ProtectedAdminUsersRoute
   '/dashboard/projects': typeof ProtectedDashboardProjectsRoute
+  '/hackathons/$hackathonId': typeof ProtectedHackathonsHackathonIdRoute
   '/organizer/exports': typeof ProtectedOrganizerExportsRoute
   '/organizer/judges': typeof ProtectedOrganizerJudgesRoute
   '/projects/$projectId': typeof ProtectedProjectsProjectIdRoute
   '/teams/$teamId': typeof ProtectedTeamsTeamIdRoute
   '/admin': typeof ProtectedAdminIndexRoute
+  '/hackathons': typeof ProtectedHackathonsIndexRoute
   '/judging': typeof ProtectedJudgingIndexRoute
   '/projects': typeof ProtectedProjectsIndexRoute
   '/teams': typeof ProtectedTeamsIndexRoute
@@ -249,11 +267,13 @@ export interface FileRoutesById {
   '/_protected/admin/teams': typeof ProtectedAdminTeamsRoute
   '/_protected/admin/users': typeof ProtectedAdminUsersRoute
   '/_protected/dashboard/projects': typeof ProtectedDashboardProjectsRoute
+  '/_protected/hackathons/$hackathonId': typeof ProtectedHackathonsHackathonIdRoute
   '/_protected/organizer/exports': typeof ProtectedOrganizerExportsRoute
   '/_protected/organizer/judges': typeof ProtectedOrganizerJudgesRoute
   '/_protected/projects/$projectId': typeof ProtectedProjectsProjectIdRoute
   '/_protected/teams/$teamId': typeof ProtectedTeamsTeamIdRoute
   '/_protected/admin/': typeof ProtectedAdminIndexRoute
+  '/_protected/hackathons/': typeof ProtectedHackathonsIndexRoute
   '/_protected/judging/': typeof ProtectedJudgingIndexRoute
   '/_protected/projects/': typeof ProtectedProjectsIndexRoute
   '/_protected/teams/': typeof ProtectedTeamsIndexRoute
@@ -278,11 +298,13 @@ export interface FileRouteTypes {
     | '/admin/teams'
     | '/admin/users'
     | '/dashboard/projects'
+    | '/hackathons/$hackathonId'
     | '/organizer/exports'
     | '/organizer/judges'
     | '/projects/$projectId'
     | '/teams/$teamId'
     | '/admin/'
+    | '/hackathons/'
     | '/judging/'
     | '/projects/'
     | '/teams/'
@@ -305,11 +327,13 @@ export interface FileRouteTypes {
     | '/admin/teams'
     | '/admin/users'
     | '/dashboard/projects'
+    | '/hackathons/$hackathonId'
     | '/organizer/exports'
     | '/organizer/judges'
     | '/projects/$projectId'
     | '/teams/$teamId'
     | '/admin'
+    | '/hackathons'
     | '/judging'
     | '/projects'
     | '/teams'
@@ -333,11 +357,13 @@ export interface FileRouteTypes {
     | '/_protected/admin/teams'
     | '/_protected/admin/users'
     | '/_protected/dashboard/projects'
+    | '/_protected/hackathons/$hackathonId'
     | '/_protected/organizer/exports'
     | '/_protected/organizer/judges'
     | '/_protected/projects/$projectId'
     | '/_protected/teams/$teamId'
     | '/_protected/admin/'
+    | '/_protected/hackathons/'
     | '/_protected/judging/'
     | '/_protected/projects/'
     | '/_protected/teams/'
@@ -426,6 +452,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedJudgingIndexRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/hackathons/': {
+      id: '/_protected/hackathons/'
+      path: '/hackathons'
+      fullPath: '/hackathons/'
+      preLoaderRoute: typeof ProtectedHackathonsIndexRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/_protected/admin/': {
       id: '/_protected/admin/'
       path: '/admin'
@@ -459,6 +492,13 @@ declare module '@tanstack/react-router' {
       path: '/organizer/exports'
       fullPath: '/organizer/exports'
       preLoaderRoute: typeof ProtectedOrganizerExportsRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/hackathons/$hackathonId': {
+      id: '/_protected/hackathons/$hackathonId'
+      path: '/hackathons/$hackathonId'
+      fullPath: '/hackathons/$hackathonId'
+      preLoaderRoute: typeof ProtectedHackathonsHackathonIdRouteImport
       parentRoute: typeof ProtectedRoute
     }
     '/_protected/dashboard/projects': {
@@ -562,11 +602,13 @@ interface ProtectedRouteChildren {
   ProtectedAdminProjectsRoute: typeof ProtectedAdminProjectsRoute
   ProtectedAdminTeamsRoute: typeof ProtectedAdminTeamsRoute
   ProtectedAdminUsersRoute: typeof ProtectedAdminUsersRoute
+  ProtectedHackathonsHackathonIdRoute: typeof ProtectedHackathonsHackathonIdRoute
   ProtectedOrganizerExportsRoute: typeof ProtectedOrganizerExportsRoute
   ProtectedOrganizerJudgesRoute: typeof ProtectedOrganizerJudgesRoute
   ProtectedProjectsProjectIdRoute: typeof ProtectedProjectsProjectIdRoute
   ProtectedTeamsTeamIdRoute: typeof ProtectedTeamsTeamIdRoute
   ProtectedAdminIndexRoute: typeof ProtectedAdminIndexRoute
+  ProtectedHackathonsIndexRoute: typeof ProtectedHackathonsIndexRoute
   ProtectedJudgingIndexRoute: typeof ProtectedJudgingIndexRoute
   ProtectedProjectsIndexRoute: typeof ProtectedProjectsIndexRoute
   ProtectedTeamsIndexRoute: typeof ProtectedTeamsIndexRoute
@@ -585,11 +627,13 @@ const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedAdminProjectsRoute: ProtectedAdminProjectsRoute,
   ProtectedAdminTeamsRoute: ProtectedAdminTeamsRoute,
   ProtectedAdminUsersRoute: ProtectedAdminUsersRoute,
+  ProtectedHackathonsHackathonIdRoute: ProtectedHackathonsHackathonIdRoute,
   ProtectedOrganizerExportsRoute: ProtectedOrganizerExportsRoute,
   ProtectedOrganizerJudgesRoute: ProtectedOrganizerJudgesRoute,
   ProtectedProjectsProjectIdRoute: ProtectedProjectsProjectIdRoute,
   ProtectedTeamsTeamIdRoute: ProtectedTeamsTeamIdRoute,
   ProtectedAdminIndexRoute: ProtectedAdminIndexRoute,
+  ProtectedHackathonsIndexRoute: ProtectedHackathonsIndexRoute,
   ProtectedJudgingIndexRoute: ProtectedJudgingIndexRoute,
   ProtectedProjectsIndexRoute: ProtectedProjectsIndexRoute,
   ProtectedTeamsIndexRoute: ProtectedTeamsIndexRoute,

@@ -13,16 +13,17 @@ import {
   PlusCircle,
   BarChart3,
   ShieldX,
-  Users2
+  Users2,
+  Globe
 } from 'lucide-react';
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const navItems = {
   PARTICIPANT: [
-    { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-    { label: 'My Teams', icon: Users, href: '/teams' },
-    { label: 'My Projects', icon: Rocket, href: '/projects' },
+    { label: 'Dashboard',   icon: LayoutDashboard, href: '/dashboard' },
+    { label: 'Хакатони',   icon: Globe,            href: '/hackathons' },
+    { label: 'Мої Команди', icon: Users,            href: '/teams' },
   ],
   ORGANIZER: [
     { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
