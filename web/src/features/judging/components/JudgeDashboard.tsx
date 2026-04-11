@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { judgingApi } from '@/shared/api/judging.service';
-import { Badge } from '@/shared/ui/badge';
+import { Badge, Switch, Label } from '@/shared/ui';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/utils';
 import {
   Gavel, CheckCircle2, Clock, ShieldAlert, ChevronRight,
-  Trophy, Layers, ArrowRight,
+  Trophy, Layers, ArrowRight, Eye, EyeOff
 } from 'lucide-react';
 import { ScorePanel } from './ScorePanel';
 import type { JudgingProject } from '@/shared/api/judging.service';
+import { useJudgingStore } from '../store/judging.store';
 
 // ─── Status Helpers ──────────────────────────────────────────────────────────
 
@@ -30,6 +31,8 @@ const STATUS_ICON = {
 export function JudgeDashboard() {
   const [selectedHackathonId, setSelectedHackathonId] = useState<string | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  
+  const { isBlindJudging, toggleBlindJudging } = useJudgingStore();
 
   // 1. Load judge's hackathons
   const { data: hackathons = [], isLoading: loadingHackathons } = useQuery({
@@ -86,9 +89,22 @@ export function JudgeDashboard() {
           <StatChip icon={<Clock className="h-3.5 w-3.5 text-amber-500" />} label="Очікують" value={pendingProjects.length} color="amber" />
         </div>
 
-        {/* Hackathon selector */}
-        {hackathons.length > 1 && (
-          <div className="flex items-center gap-2">
+        {/* Header Actions (Blind judging + Hackathon selector) */}
+        <div className="flex items-center gap-6">
+          <div className="flex items-center space-x-2 bg-muted/30 px-3 py-1.5 rounded-xl border">
+            {isBlindJudging ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
+            <Label htmlFor="blind-mode" className="text-xs font-bold whitespace-nowrap cursor-pointer">
+              Blind Judging
+            </Label>
+            <Switch
+              id="blind-mode"
+              checked={isBlindJudging}
+              onCheckedChange={toggleBlindJudging}
+            />
+          </div>
+
+          {hackathons.length > 1 && (
+            <div className="flex items-center gap-2">
             {hackathons.map(h => (
               <button
                 key={h.id}
@@ -103,10 +119,10 @@ export function JudgeDashboard() {
                 {h.title}
               </button>
             ))}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
-
       {/* ── Split Layout ── */}
       <div className="flex flex-1 overflow-hidden">
 

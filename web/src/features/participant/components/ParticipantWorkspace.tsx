@@ -9,6 +9,7 @@ import {
   Calendar, ChevronLeft, Rocket,
 } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
+import { useHackathonSocket } from '@/shared/hooks/useHackathonSocket';
 
 // Tab components
 import { OverviewTab }    from '@/features/participant/components/workspace-tabs/OverviewTab';
@@ -47,6 +48,9 @@ interface ParticipantWorkspaceProps {
 
 export function ParticipantWorkspace({ hackathonId }: ParticipantWorkspaceProps) {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
+
+  // Activate real-time sync for this workspace
+  useHackathonSocket(hackathonId);
 
   // Hackathon details
   const { data: hackathon, isLoading: loadingHackathon } = useQuery({

@@ -1,7 +1,7 @@
-import { useState } from 'react';
+
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Card, Button } from '@/shared/ui';
-import { Users, Plus, Globe } from 'lucide-react';
+import { Users, Globe } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { authClient } from '@/shared/api/auth-client';
 

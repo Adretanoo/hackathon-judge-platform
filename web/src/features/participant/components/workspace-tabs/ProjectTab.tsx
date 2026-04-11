@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/shared/lib/utils';
+import { FileUpload } from '@/shared/ui/file-upload';
 
 interface ProjectTabProps {
   team: any;
@@ -35,6 +36,7 @@ export function ProjectTab({ team, project, onUpdated }: ProjectTabProps) {
     description: project?.description ?? '',
     repoUrl:     project?.repoUrl     ?? '',
     demoUrl:     project?.demoUrl     ?? '',
+    videoUrl:    project?.videoUrl    ?? '',
   });
   const [isDirty, setIsDirty] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -58,6 +60,7 @@ export function ProjectTab({ team, project, onUpdated }: ProjectTabProps) {
       description: form.description || undefined,
       repoUrl: form.repoUrl || undefined,
       demoUrl: form.demoUrl || undefined,
+      videoUrl: form.videoUrl || undefined,
       teamId: team.id,
     }),
     onSuccess: () => {
@@ -76,6 +79,7 @@ export function ProjectTab({ team, project, onUpdated }: ProjectTabProps) {
       description: form.description || undefined,
       repoUrl: form.repoUrl || undefined,
       demoUrl: form.demoUrl || undefined,
+      videoUrl: form.videoUrl || undefined,
     }),
     onSuccess: () => {
       setIsDirty(false);
@@ -177,6 +181,16 @@ export function ProjectTab({ team, project, onUpdated }: ProjectTabProps) {
                   type="url"
                 />
               </div>
+            </div>
+
+            <div className="space-y-1.5 pt-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Презентація (Відео / Зображення)</label>
+              <FileUpload
+                value={form.videoUrl}
+                onChange={url => update('videoUrl', url)}
+                accept="video/*,image/*"
+                maxSizeMB={25}
+              />
             </div>
           </div>
 

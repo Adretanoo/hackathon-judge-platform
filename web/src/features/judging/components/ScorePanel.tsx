@@ -7,10 +7,11 @@ import { Textarea } from '@/shared/ui/textarea';
 import { cn } from '@/shared/lib/utils';
 import {
   GitBranch, ExternalLink, ShieldAlert, CheckCircle2,
-  ChevronRight, Save, Send, Loader2, AlertCircle,
+  ChevronRight, Send, Loader2, AlertCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { JudgingProject, ProjectCriterion, ScoreItem } from '@/shared/api/judging.service';
+import { useJudgingStore } from '../store/judging.store';
 
 interface ScorePanelProps {
   project: JudgingProject;
@@ -54,8 +55,12 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
   const [isDirty, setIsDirty] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-  // Pre-fill with existing scores
+  const { draftScores, saveDraft, clearDraft, isBlindJudging } = useJudgingStore();
+
+  // Pre-fill with existing scores or local draft
   useEffect(() => {
+    const localDraft = draftScores[project.id];
+
     if (existingScores.length > 0) {
       const map: ScoreMap = {};
       existingScores.forEach((s: any) => {
@@ -63,6 +68,15 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
         if (s.comment) setComment(s.comment);
       });
       setScores(map);
+    } else if (localDraft) {
+      // Load from Zustand local storage draft
+      const map: ScoreMap = {};
+      for (const [cId, val] of Object.entries(localDraft.scores)) {
+        map[cId] = Number(val);
+      }
+      setScores(map);
+      setComment(localDraft.notes);
+      setIsDirty(true);
     } else if (criteria.length > 0) {
       // Default all to 0
       const defaults: ScoreMap = {};
@@ -88,6 +102,7 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
       setLastSaved(new Date());
       queryClient.invalidateQueries({ queryKey: ['judging', 'projects', hackathonId] });
       queryClient.invalidateQueries({ queryKey: ['project', project.id] });
+      clearDraft(project.id); // clear local draft on successful submit
       // Auto-navigate to next project after brief delay
       if (onNext) setTimeout(onNext, 800);
     },
@@ -97,28 +112,21 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
     },
   });
 
-  const draftMutation = useMutation({
-    mutationFn: () => judgingApi.submitScores(project.id, buildPayload()),
-    onSuccess: () => {
-      setIsDirty(false);
-      setLastSaved(new Date());
-      toast.success('Чернетку збережено', { duration: 2000 });
-      queryClient.invalidateQueries({ queryKey: ['judging', 'projects'] });
-    },
-    onError: () => toast.error('Не вдалося зберегти чернетку'),
-  });
-
-  // ─── Auto-save draft every 30s ──────────────────────────────────────────
+  // ─── Local Auto-save draft every 5s ─────────────────────────────────────
 
   useEffect(() => {
     if (!isDirty || criteria.length === 0) return;
     const timer = setTimeout(() => {
-      if (isDirty && !submitMutation.isPending) {
-        draftMutation.mutate();
+      // Save to local Zustand store instead of backend
+      const draftMap: Record<string, string> = {};
+      for (const [k, v] of Object.entries(scores)) {
+        draftMap[k] = String(v);
       }
-    }, 30_000);
+      saveDraft(project.id, { scores: draftMap, notes: comment });
+      setLastSaved(new Date());
+    }, 5000); // 5 sec debounce
     return () => clearTimeout(timer);
-  }, [isDirty, scores, comment]);
+  }, [isDirty, scores, comment, project.id, saveDraft, criteria.length]);
 
   // ─── Score Update ────────────────────────────────────────────────────────
 
@@ -140,9 +148,9 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
 
   const totalWeightedScore = criteria.reduce((sum, c) => {
     const raw = scores[c.id] ?? 0;
-    return sum + (raw / c.maxScore) * c.weight * 100;
+    return sum + (raw / c.maxScore) * Number(c.weight) * 100;
   }, 0);
-  const totalWeight = criteria.reduce((sum, c) => sum + c.weight, 0);
+  const totalWeight = criteria.reduce((sum, c) => sum + Number(c.weight), 0);
   const normalizedScore = totalWeight > 0 ? (totalWeightedScore / (totalWeight * 100)) * 100 : 0;
 
   // ─── Render ──────────────────────────────────────────────────────────────
@@ -169,7 +177,9 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
             )}
           </div>
           <p className="text-sm text-muted-foreground">
-            Команда: <span className="font-semibold">{project.team?.name ?? '—'}</span>
+            Команда: <span className={cn("font-semibold", isBlindJudging && "italic blur-sm select-none")}>
+              {isBlindJudging ? 'Hidden (Blind Judging)' : (project.team?.name ?? '—')}
+            </span>
           </p>
         </div>
 
@@ -243,7 +253,7 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
                 ✓ Збережено о {lastSaved.toLocaleTimeString()}
               </p>
             )}
-            {isDirty && !draftMutation.isPending && (
+            {isDirty && (
               <p className="text-[10px] text-amber-500 text-center">
                 • Незбережені зміни
               </p>
@@ -305,16 +315,12 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
       {/* ── Sticky Footer: Action Bar ── */}
       <div className="px-6 py-4 border-t bg-background flex items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2 rounded-xl"
-            onClick={() => draftMutation.mutate()}
-            disabled={!isDirty || draftMutation.isPending || project.hasConflict}
-          >
-            {draftMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-            Зберегти чернетку
-          </Button>
+          {/* Draft button removed since it auto-saves locally */}
+          {lastSaved && (
+            <span className="text-[10px] bg-muted px-2 py-1 rounded-md text-muted-foreground">
+              Чернетку {lastSaved.toLocaleTimeString()}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-3">

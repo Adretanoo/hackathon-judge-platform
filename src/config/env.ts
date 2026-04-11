@@ -64,6 +64,11 @@ const envSchema = z.object({
   // AI (optional)
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default('gpt-4o-mini'),
+
+  // Cloudinary (File Uploads)
+  CLOUDINARY_CLOUD_NAME: z.string().optional(),
+  CLOUDINARY_API_KEY: z.string().optional(),
+  CLOUDINARY_API_SECRET: z.string().optional(),
 });
 
 /** Inferred type of the validated environment */

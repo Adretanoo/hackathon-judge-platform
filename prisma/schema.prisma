@@ -37,6 +37,8 @@ model User {
   roles                UserRole[]
   socials              UserSocial[]
   tokens               UserToken[]
+  notifications        Notification[]
+  auditLogs            AuditLog[]
 
   @@index([email])
   @@index([username])
@@ -578,4 +580,81 @@ model SystemConfig {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("system_configs")
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+/// In-app notification for a user
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String
+  body      String
+  /// Extra context: { hackathonId, teamId, projectId, actionUrl }
+  metadata  Json?            @default("{}")
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  TEAM_INVITE
+  JUDGE_ASSIGNED
+  PROJECT_SUBMITTED
+  SCORING_STARTED
+  CONFLICT_DETECTED
+  HACKATHON_STATUS_CHANGED
+  CAPTAIN_TRANSFERRED
+  TEAM_LEFT
+  HACKATHON_LEFT
+}
+
+// ─── Audit Log ────────────────────────────────────────────────────────────────
+
+/// Immutable audit trail of important user actions
+model AuditLog {
+  id         String          @id @default(cuid())
+  userId     String          @map("user_id")
+  action     AuditAction
+  entityType AuditEntityType
+  entityId   String          @map("entity_id")
+  /// Contextual data snapshot: { before, after, ip, changes, ... }
+  metadata   Json?           @default("{}")
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user       User            @relation(fields: [userId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  ASSIGN
+  UNASSIGN
+  OVERRIDE
+  STATUS_CHANGE
+  EXPORT
+  LOGIN
+  LEAVE
+}
+
+enum AuditEntityType {
+  HACKATHON
+  TEAM
+  PROJECT
+  USER
+  JUDGE
+  JUDGE_CONFLICT
+  SCORE
 }

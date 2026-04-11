@@ -16,3 +16,4 @@ export * from "./alert";
 export * from "./skeleton";
 export * from "./textarea";
 export * from "./switch";
+export * from "./file-upload";

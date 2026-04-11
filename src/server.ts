@@ -22,8 +22,9 @@ import cookiePlugin from './plugins/cookie';
 import jwtPlugin from './plugins/jwt';
 import prismaPlugin from './plugins/prisma';
 import redisPlugin from './plugins/redis';
-import websocketPlugin from './plugins/websocket';
+import socketioPlugin from './plugins/socketio';
 import errorHandlerPlugin from './plugins/errorHandler';
+import multipartPlugin from './plugins/multipart';
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 import { registerRoutes } from './routes';
@@ -60,13 +61,14 @@ export async function buildApp(): Promise<any> {
   await app.register(helmetPlugin);
   await app.register(corsPlugin);
   await app.register(rateLimitPlugin);
+  await app.register(multipartPlugin);
 
   // ── Database & Cache ────────────────────────────────────────────────────
   await app.register(prismaPlugin);
   await app.register(redisPlugin);
 
   // ── Real-time ────────────────────────────────────────────────────────────
-  await app.register(websocketPlugin);
+  await app.register(socketioPlugin);
 
   // ── Auth ─────────────────────────────────────────────────────────────────
   await app.register(cookiePlugin);

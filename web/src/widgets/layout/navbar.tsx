@@ -16,7 +16,8 @@ import {
   SheetTrigger
 } from '@/shared/ui';
 import { Sidebar } from './sidebar';
-import { Menu, Bell, User as UserIcon, LogOut, Settings as SettingsIcon, Sun, Moon, Monitor } from 'lucide-react';
+import { NotificationBell } from '@/widgets/notifications/NotificationBell';
+import { Menu, User as UserIcon, LogOut, Settings as SettingsIcon, Sun, Moon, Monitor } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 
 export function Navbar() {
@@ -59,9 +60,7 @@ export function Navbar() {
             </span>
           </div>
 
-          <Button variant="ghost" size="icon" className="text-muted-foreground">
-            <Bell className="h-5 w-5" />
-          </Button>
+          <NotificationBell />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

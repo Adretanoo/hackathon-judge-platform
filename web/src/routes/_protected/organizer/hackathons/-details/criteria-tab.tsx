@@ -48,7 +48,7 @@ export function CriteriaTab({ hackathon }: CriteriaTabProps) {
     allCriteria.filter((c: any) => c.trackId === trackId);
 
   const totalWeight = (criteria: any[]) =>
-    criteria.reduce((sum, c) => sum + (c.weight || 0), 0);
+    criteria.reduce((sum, c) => sum + Number(c.weight || 0), 0);
 
   return (
     <div className="space-y-6">

@@ -15,6 +15,9 @@ import { judgingRoutes } from './judging.routes';
 import { exportRoutes } from './export.routes';
 import { configRoutes } from './config.routes';
 import { participantRoutes } from './participant.routes';
+import { notificationRoutes } from './notification.routes';
+import { auditRoutes } from './audit.routes';
+import { uploadRoutes } from './upload.routes';
 import { env } from '../config';
 
 /**
@@ -40,6 +43,9 @@ export async function registerRoutes(app: any): Promise<void> {
       await api.register(userRoutes,      { prefix: '/users' });
       await api.register(configRoutes,    { prefix: '/config' });
       await api.register(participantRoutes, { prefix: '/participant' });
+      await api.register(notificationRoutes, { prefix: '/notifications' });
+      await api.register(auditRoutes, { prefix: '/audit-logs' });
+      await api.register(uploadRoutes, { prefix: '/uploads' });
     },
     { prefix: env.API_PREFIX },
   );
