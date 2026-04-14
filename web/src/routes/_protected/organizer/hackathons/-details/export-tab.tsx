@@ -52,7 +52,7 @@ export function ExportTab({ hackathon }: ExportTabProps) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${hackathon.title.replace(/\s+/g, '_')}_${type === 'csv' ? 'scores' : 'certificates'}.${type === 'csv' ? 'csv' : 'zip'}`;
+      a.download = `${hackathon.title.replace(/\s+/g, '_')}_${type === 'csv' ? 'scores' : 'certificates'}.${type === 'csv' ? 'csv' : 'pdf'}`;
       a.click();
       URL.revokeObjectURL(url);
       toast.success(`${type.toUpperCase()} export downloaded!`);

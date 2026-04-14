@@ -4,7 +4,7 @@ import { Button, Input, Label, Textarea, Card, CardContent, CardDescription, Car
 import { userApi } from '@/shared/api/user.service';
 import type { UserProfile } from '@/shared/api/user.service';
 import { toast } from 'sonner';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, BadgeCheck, ShieldAlert } from 'lucide-react';
 
 export const Route = createFileRoute('/_protected/profile/')({
   component: ProfilePage,
@@ -64,6 +64,21 @@ function ProfilePage() {
       toast.success('Профіль успішно оновлено!');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Помилка при збереженні профілю');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleVerify = async () => {
+    setIsSaving(true);
+    try {
+      const data = await userApi.updateMe({
+        isVerified: true,
+      });
+      setProfile(data);
+      toast.success('Ваш акаунт успішно верифіковано!');
+    } catch (err: any) {
+      toast.error('Помилка при верифікації акаунту');
     } finally {
       setIsSaving(false);
     }
@@ -183,11 +198,43 @@ function ProfilePage() {
               </Avatar>
               <h3 className="font-semibold text-lg">{fullName}</h3>
               <p className="text-sm text-muted-foreground mb-4">@{profile?.email?.split('@')[0]}</p>
-              <Badge variant="outline" className="mb-2">
-                {profile?.role === 'ORGANIZER' ? 'Організатор' : profile?.role === 'JUDGE' ? 'Суддя' : 'Учасник'}
-              </Badge>
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant="outline">
+                  {profile?.role === 'ORGANIZER' ? 'Організатор' : profile?.role === 'JUDGE' ? 'Суддя' : 'Учасник'}
+                </Badge>
+                {profile?.isVerified && (
+                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-0 flex items-center gap-1">
+                    <BadgeCheck className="w-3 h-3" /> Верифіковано
+                  </Badge>
+                )}
+              </div>
             </CardContent>
           </Card>
+
+          {/* Verification Card */}
+          {!profile?.isVerified && (
+            <Card className="border-amber-200 dark:border-amber-900/30 bg-amber-50 dark:bg-amber-900/10">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-3">
+                  <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-500 mt-0.5 shrink-0" />
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-amber-800 dark:text-amber-400">Акаунт не верифіковано</h4>
+                    <p className="text-xs text-amber-700/80 dark:text-amber-500/80">
+                      Верифікуйте свій акаунт, щоб отримати доступ до всіх можливостей платформи та викликати більше довіри.
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      className="w-full mt-2 bg-white dark:bg-black hover:bg-amber-100 dark:hover:bg-amber-900/20"
+                      onClick={handleVerify}
+                      disabled={isSaving}
+                    >
+                      {isSaving ? 'Зачекайте...' : 'Верифікувати зараз'}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

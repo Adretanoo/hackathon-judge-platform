@@ -12,6 +12,8 @@ import {
   updateUserHandler,
   deleteUserHandler,
   assignRoleHandler,
+  getMeHandler,
+  updateMeHandler,
 } from '../controllers/user.controller';
 import {
   listUsersQuerySchema,
@@ -44,6 +46,55 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
       data: dataSchema,
     },
   });
+
+  // ─── GET /users/me ─────────────────────────────────────────────────────────
+
+  app.get(
+    '/me',
+    {
+      schema: {
+        tags: ['Users'],
+        summary: 'Get current user profile',
+        security: [{ BearerAuth: [] }],
+        response: {
+          200: successWrapper({ type: 'object', additionalProperties: true }),
+          401: errorSchema,
+        },
+      },
+      preHandler: [app.authenticate],
+    },
+    getMeHandler as any,
+  );
+
+  // ─── PATCH /users/me ───────────────────────────────────────────────────────
+
+  app.patch(
+    '/me',
+    {
+      schema: {
+        tags: ['Users'],
+        summary: 'Update own profile',
+        security: [{ BearerAuth: [] }],
+        body: {
+          type: 'object',
+          properties: {
+            fullName: { type: 'string' },
+            avatarUrl: { type: 'string', format: 'uri' },
+            bio: { type: 'string' },
+            skills: { type: 'array', items: { type: 'string' } },
+            isVerified: { type: 'boolean' },
+          },
+        },
+        response: {
+          200: successWrapper({ type: 'object', additionalProperties: true }),
+          400: errorSchema,
+          401: errorSchema,
+        },
+      },
+      preHandler: [app.authenticate],
+    },
+    updateMeHandler as any,
+  );
 
   // ─── GET /users ────────────────────────────────────────────────────────────
 

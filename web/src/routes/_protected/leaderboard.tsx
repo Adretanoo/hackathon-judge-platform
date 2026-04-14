@@ -88,7 +88,7 @@ function LeaderboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-primary/5">
+    <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto px-4 py-10 space-y-8">
         {/* ── Header ── */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -150,7 +150,7 @@ function LeaderboardPage() {
         </div>
 
         {/* ── Hackathon + Track filters ── */}
-        <div className="flex flex-wrap gap-3 p-5 bg-white rounded-2xl border border-black/5 shadow-sm">
+        <div className="flex flex-wrap gap-3 p-5 bg-card rounded-2xl border border-border shadow-sm">
           <div className="flex items-center gap-2 mr-2 text-muted-foreground">
             <Filter className="h-4 w-4" />
             <span className="text-sm font-bold uppercase tracking-widest text-xs">Filters</span>
@@ -200,7 +200,7 @@ function LeaderboardPage() {
 
         {/* ── Podium (Top 3) ── */}
         {top3.length > 0 && (
-          <div className="bg-white rounded-3xl border border-black/5 shadow-sm overflow-hidden">
+          <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
             <div className="px-6 pt-6 flex items-center gap-3">
               <Sparkles className="h-5 w-5 text-amber-500" />
               <h2 className="font-black text-lg">Top Performers</h2>
@@ -210,8 +210,8 @@ function LeaderboardPage() {
         )}
 
         {/* ── Full Leaderboard Table ── */}
-        <div className="bg-white rounded-3xl border border-black/5 shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-black/5 flex items-center justify-between">
+        <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
+          <div className="px-6 py-5 border-b border-border flex items-center justify-between">
             <h2 className="font-black text-lg flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-primary" />
               Full Rankings
@@ -231,7 +231,7 @@ function LeaderboardPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-black/5">
+                  <tr className="border-b border-border">
                     <th className="py-3 pl-6 pr-3 text-left text-[10px] uppercase font-black tracking-widest text-muted-foreground w-16">Rank</th>
                     <th className="py-3 pr-4 text-left text-[10px] uppercase font-black tracking-widest text-muted-foreground">Team / Project</th>
                     <th className="py-3 pr-4 text-center text-[10px] uppercase font-black tracking-widest text-muted-foreground hidden md:table-cell">Raw</th>

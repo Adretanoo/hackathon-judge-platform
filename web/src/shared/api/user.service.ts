@@ -8,6 +8,7 @@ export interface UserProfile {
   avatarUrl?: string;
   bio?: string;
   skills?: string[];
+  isVerified?: boolean;
   createdAt: string;
 }
 

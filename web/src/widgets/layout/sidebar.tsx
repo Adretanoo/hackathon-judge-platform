@@ -87,7 +87,7 @@ export function Sidebar({ className }: SidebarProps) {
           </h2>
           <div className="space-y-1">
             <Link
-              to="/dashboard"
+              to="/profile"
               inactiveProps={{ className: "text-muted-foreground hover:bg-accent hover:text-accent-foreground" }}
               className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all"
             >

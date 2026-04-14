@@ -19,7 +19,6 @@ import {
   ShieldAlert,
   UserX,
   CheckCircle2,
-  ExternalLink,
   Filter,
   RefreshCw,
 } from 'lucide-react';
@@ -216,8 +215,8 @@ function ConflictCard({
         </div>
         {!resolved && (
           <div className="flex items-center gap-2 shrink-0 self-start">
-            <Button variant="outline" size="sm" className="h-8 rounded-xl text-xs gap-1.5">
-              <ExternalLink className="h-3 w-3" /> View Judge
+            <Button variant="outline" size="sm" className="h-8 rounded-xl text-xs gap-1.5" disabled>
+              Unresolved
             </Button>
           </div>
         )}

@@ -32,7 +32,7 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 const SHARED_PASSWORD = 'Test@1234!';
-const ADMIN_PASSWORD  = 'Admin@123!';
+const ADMIN_PASSWORD = 'Admin@123!';
 
 async function hash(pwd: string) {
   return bcrypt.hash(pwd, 10);
@@ -43,8 +43,8 @@ async function main() {
 
   // ─── 1. USERS ──────────────────────────────────────────────────────────────
 
-  const adminHash   = await hash(ADMIN_PASSWORD);
-  const sharedHash  = await hash(SHARED_PASSWORD);
+  const adminHash = await hash(ADMIN_PASSWORD);
+  const sharedHash = await hash(SHARED_PASSWORD);
 
   const admin = await prisma.user.upsert({
     where: { email: 'admin@platform.com' },
@@ -199,17 +199,17 @@ async function main() {
   await prisma.userRole.createMany({
     skipDuplicates: true,
     data: [
-      { userId: admin.id,     roleName: RoleName.GLOBAL_ADMIN },
-      { userId: admin.id,     roleName: RoleName.ORGANIZER },
+      { userId: admin.id, roleName: RoleName.GLOBAL_ADMIN },
+      { userId: admin.id, roleName: RoleName.ORGANIZER },
       { userId: organizer.id, roleName: RoleName.ORGANIZER },
-      { userId: judge1.id,    roleName: RoleName.JUDGE },
-      { userId: judge2.id,    roleName: RoleName.JUDGE },
-      { userId: alice.id,     roleName: RoleName.PARTICIPANT },
-      { userId: bob.id,       roleName: RoleName.PARTICIPANT },
-      { userId: carol.id,     roleName: RoleName.PARTICIPANT },
-      { userId: dave.id,      roleName: RoleName.PARTICIPANT },
-      { userId: eva.id,       roleName: RoleName.PARTICIPANT },
-      { userId: frank.id,     roleName: RoleName.PARTICIPANT },
+      { userId: judge1.id, roleName: RoleName.JUDGE },
+      { userId: judge2.id, roleName: RoleName.JUDGE },
+      { userId: alice.id, roleName: RoleName.PARTICIPANT },
+      { userId: bob.id, roleName: RoleName.PARTICIPANT },
+      { userId: carol.id, roleName: RoleName.PARTICIPANT },
+      { userId: dave.id, roleName: RoleName.PARTICIPANT },
+      { userId: eva.id, roleName: RoleName.PARTICIPANT },
+      { userId: frank.id, roleName: RoleName.PARTICIPANT },
     ],
   });
 
@@ -232,9 +232,9 @@ async function main() {
   // Assign student info to participants
   for (const [user, code] of [
     [alice, 'STU-001'],
-    [bob,   'STU-002'],
+    [bob, 'STU-002'],
     [carol, 'STU-003'],
-    [dave,  'STU-004'],
+    [dave, 'STU-004'],
   ] as const) {
     await prisma.studentInfo.upsert({
       where: { userId: user.id },
@@ -253,11 +253,11 @@ async function main() {
 
   // ─── 4. HACKATHON ──────────────────────────────────────────────────────────
 
-  const now       = new Date();
-  const reg_end   = new Date(now.getTime() + 2  * 24 * 60 * 60 * 1000);
-  const hack_start= new Date(now.getTime() + 5  * 24 * 60 * 60 * 1000);
-  const hack_end  = new Date(now.getTime() + 7  * 24 * 60 * 60 * 1000);
-  const judge_end = new Date(now.getTime() + 9  * 24 * 60 * 60 * 1000);
+  const now = new Date();
+  const reg_end = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
+  const hack_start = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
+  const hack_end = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const judge_end = new Date(now.getTime() + 9 * 24 * 60 * 60 * 1000);
 
   let hackathon = await prisma.hackathon.findFirst({
     where: { title: 'AI for Good Hackathon 2026' },
@@ -306,11 +306,13 @@ async function main() {
   // ─── 5. STAGES ─────────────────────────────────────────────────────────────
 
   const stagesData = [
-    { name: 'Check-in & Registration',  orderIndex: 0, start: now,        end: reg_end   },
-    { name: 'Hacking Phase',            orderIndex: 1, start: hack_start, end: hack_end  },
-    { name: 'Project Submission',       orderIndex: 2, start: hack_end,   end: judge_end },
-    { name: 'Judging & Evaluation',     orderIndex: 3, start: judge_end,
-      end: new Date(judge_end.getTime() + 2 * 24 * 60 * 60 * 1000) },
+    { name: 'Check-in & Registration', orderIndex: 0, start: now, end: reg_end },
+    { name: 'Hacking Phase', orderIndex: 1, start: hack_start, end: hack_end },
+    { name: 'Project Submission', orderIndex: 2, start: hack_end, end: judge_end },
+    {
+      name: 'Judging & Evaluation', orderIndex: 3, start: judge_end,
+      end: new Date(judge_end.getTime() + 2 * 24 * 60 * 60 * 1000)
+    },
   ];
 
   for (const s of stagesData) {
@@ -358,17 +360,17 @@ async function main() {
   // ─── 7. CRITERIA ───────────────────────────────────────────────────────────
 
   const aiCriteria = [
-    { name: 'Технічна реалізація',  description: 'Якість коду, архітектура, AI-підхід',   weight: 0.35, maxScore: 10, orderIndex: 0 },
-    { name: 'Інноваційність',       description: 'Унікальність ідеї та підходу',           weight: 0.25, maxScore: 10, orderIndex: 1 },
-    { name: 'Практичність',         description: 'Реальна користь та use case',             weight: 0.25, maxScore: 10, orderIndex: 2 },
-    { name: 'Презентація',          description: 'Демо, pitch, зрозумілість',               weight: 0.15, maxScore: 10, orderIndex: 3 },
+    { name: 'Технічна реалізація', description: 'Якість коду, архітектура, AI-підхід', weight: 0.35, maxScore: 10, orderIndex: 0 },
+    { name: 'Інноваційність', description: 'Унікальність ідеї та підходу', weight: 0.25, maxScore: 10, orderIndex: 1 },
+    { name: 'Практичність', description: 'Реальна користь та use case', weight: 0.25, maxScore: 10, orderIndex: 2 },
+    { name: 'Презентація', description: 'Демо, pitch, зрозумілість', weight: 0.15, maxScore: 10, orderIndex: 3 },
   ];
 
   const webCriteria = [
-    { name: 'UX/UI Дизайн',         description: 'Зручність, естетика, юзабіліті',         weight: 0.30, maxScore: 10, orderIndex: 0 },
-    { name: 'Технічна складність',  description: 'Складність стеку, масштабованість',      weight: 0.30, maxScore: 10, orderIndex: 1 },
-    { name: 'Бізнес-потенціал',     description: 'Монетизація, ринок, перспективи',        weight: 0.25, maxScore: 10, orderIndex: 2 },
-    { name: 'Presentation',         description: 'Pitch deck, demo, communication',         weight: 0.15, maxScore: 10, orderIndex: 3 },
+    { name: 'UX/UI Дизайн', description: 'Зручність, естетика, юзабіліті', weight: 0.30, maxScore: 10, orderIndex: 0 },
+    { name: 'Технічна складність', description: 'Складність стеку, масштабованість', weight: 0.30, maxScore: 10, orderIndex: 1 },
+    { name: 'Бізнес-потенціал', description: 'Монетизація, ринок, перспективи', weight: 0.25, maxScore: 10, orderIndex: 2 },
+    { name: 'Presentation', description: 'Pitch deck, demo, communication', weight: 0.15, maxScore: 10, orderIndex: 3 },
   ];
 
   for (const c of aiCriteria) {
@@ -430,8 +432,8 @@ async function main() {
         members: {
           create: [
             { userId: alice.id, role: TeamMemberRole.CAPTAIN },
-            { userId: bob.id,   role: TeamMemberRole.MEMBER  },
-            { userId: carol.id, role: TeamMemberRole.MEMBER  },
+            { userId: bob.id, role: TeamMemberRole.MEMBER },
+            { userId: carol.id, role: TeamMemberRole.MEMBER },
           ],
         },
       },
@@ -453,9 +455,9 @@ async function main() {
         isOpen: false,
         members: {
           create: [
-            { userId: dave.id,  role: TeamMemberRole.CAPTAIN },
-            { userId: eva.id,   role: TeamMemberRole.MEMBER  },
-            { userId: frank.id, role: TeamMemberRole.MEMBER  },
+            { userId: dave.id, role: TeamMemberRole.CAPTAIN },
+            { userId: eva.id, role: TeamMemberRole.MEMBER },
+            { userId: frank.id, role: TeamMemberRole.MEMBER },
           ],
         },
       },
@@ -636,10 +638,10 @@ async function main() {
   if (!awardsExist) {
     await prisma.award.createMany({
       data: [
-        { hackathonId: hackathon.id, title: 'Grand Prize',    prize: '$5,000 + MacBook Pro',  rank: 1, description: 'Переможець серед усіх треків.' },
-        { hackathonId: hackathon.id, title: 'Runner Up',      prize: '$2,000 + Swag Kit',     rank: 2, description: 'Друге місце.' },
-        { hackathonId: hackathon.id, title: 'Best AI Track',  prize: '$1,500 + OpenAI Credits',rank: 1, description: 'Переможець треку Generative AI.' },
-        { hackathonId: hackathon.id, title: 'Best Web Track', prize: '$1,500 + AWS Credits',  rank: 1, description: 'Переможець треку Web & Mobile.' },
+        { hackathonId: hackathon.id, title: 'Grand Prize', prize: '$5,000 + MacBook Pro', rank: 1, description: 'Переможець серед усіх треків.' },
+        { hackathonId: hackathon.id, title: 'Runner Up', prize: '$2,000 + Swag Kit', rank: 2, description: 'Друге місце.' },
+        { hackathonId: hackathon.id, title: 'Best AI Track', prize: '$1,500 + OpenAI Credits', rank: 1, description: 'Переможець треку Generative AI.' },
+        { hackathonId: hackathon.id, title: 'Best Web Track', prize: '$1,500 + AWS Credits', rank: 1, description: 'Переможець треку Web & Mobile.' },
       ],
     });
   }
@@ -668,13 +670,13 @@ async function main() {
   // ─── 16. SYSTEM CONFIG ─────────────────────────────────────────────────────
 
   const configs = [
-    { key: 'smtp.host',           value: 'smtp.gmail.com' },
-    { key: 'smtp.port',           value: 587 },
-    { key: 'smtp.secure',         value: false },
-    { key: 'features.email',      value: true },
+    { key: 'smtp.host', value: 'smtp.gmail.com' },
+    { key: 'smtp.port', value: 587 },
+    { key: 'smtp.secure', value: false },
+    { key: 'features.email', value: true },
     { key: 'features.websockets', value: true },
-    { key: 'features.export',     value: true },
-    { key: 'platform.name',       value: 'HackJudge Platform' },
+    { key: 'features.export', value: true },
+    { key: 'platform.name', value: 'HackJudge Platform' },
     { key: 'platform.supportEmail', value: 'support@hackjudge.io' },
   ];
 

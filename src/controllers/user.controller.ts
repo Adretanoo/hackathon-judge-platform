@@ -52,3 +52,23 @@ export async function assignRoleHandler(
   const result = await service.assignRole(request.params.id, request.body);
   return reply.send(successResponse(result));
 }
+
+export async function getMeHandler(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const service = new UserService(request.server.prisma);
+  const userId = (request.user as any).sub;
+  const result = await service.getUserById(userId);
+  return reply.send(successResponse(result));
+}
+
+export async function updateMeHandler(
+  request: FastifyRequest<{ Body: UpdateUserAdminBody }>,
+  reply: FastifyReply,
+) {
+  const service = new UserService(request.server.prisma);
+  const userId = (request.user as any).sub;
+  const result = await service.updateUser(userId, request.body);
+  return reply.send(successResponse(result));
+}
