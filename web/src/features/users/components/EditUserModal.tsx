@@ -39,13 +39,13 @@ export function EditUserModal({ isOpen, onClose, user }: EditUserModalProps) {
   // Sync form values whenever the modal opens with a user
   useEffect(() => {
     if (isOpen && user) {
-      // role is stored in user.roles[0].role (from the API formatUser response)
-      const currentRole = user.roles?.[0]?.role ?? user.role ?? 'PARTICIPANT';
+      // Find the global role (no hackathonId attached)
+      const globalRole = user.roles?.find((r: any) => !r.hackathonId)?.role ?? 'PARTICIPANT';
       reset({
         fullName: user.fullName || '',
         isActive: user.isActive ?? true,
         isVerified: user.isVerified ?? false,
-        role: currentRole,
+        role: globalRole,
       });
     }
   }, [isOpen, user, reset]);
@@ -59,14 +59,46 @@ export function EditUserModal({ isOpen, onClose, user }: EditUserModalProps) {
         isVerified: data.isVerified,
       });
 
-      // 2. Assign role via POST /users/:id/roles
+      // 2. Assign role — always send, backend handles dedup
       await authClient.post(`/users/${user.id}/roles`, {
         role: data.role,
       });
+
+      return data; // return submitted data for onSuccess
     },
-    onSuccess: () => {
+    onSuccess: (submittedData) => {
       toast.success('Профіль користувача успішно оновлено!');
-      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+
+      // Optimistic cache update — immediately reflect new role in the table
+      // Note: the query stores an array directly (not { items: [...] })
+      queryClient.setQueriesData(
+        { queryKey: ['admin', 'users'] },
+        (oldData: any) => {
+          if (!Array.isArray(oldData)) return oldData;
+          return oldData.map((u: any) => {
+            if (u.id !== user.id) return u;
+            // Update or add the global role correctly
+            const updatedRoles = [...(u.roles || [])];
+            const globalRoleIndex = updatedRoles.findIndex(r => !r.hackathonId);
+            if (globalRoleIndex !== -1) {
+              updatedRoles[globalRoleIndex] = { ...updatedRoles[globalRoleIndex], role: submittedData.role };
+            } else {
+              updatedRoles.push({ role: submittedData.role });
+            }
+
+            return {
+              ...u,
+              fullName: submittedData.fullName || u.fullName,
+              isActive: submittedData.isActive,
+              isVerified: submittedData.isVerified,
+              roles: updatedRoles,
+            };
+          });
+        }
+      );
+
+      // Force immediate re-fetch from server
+      queryClient.refetchQueries({ queryKey: ['admin', 'users'] });
       onClose();
     },
     onError: (err: any) => {

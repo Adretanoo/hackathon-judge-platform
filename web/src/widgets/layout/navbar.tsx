@@ -46,7 +46,7 @@ export function Navbar() {
           </Sheet>
           
           <div className="flex items-center gap-2 font-bold text-xl md:hidden">
-            <span className="bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary to-sky-400 bg-clip-text text-transparent">
               Hackathon
             </span>
           </div>

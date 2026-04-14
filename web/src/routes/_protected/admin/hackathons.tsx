@@ -28,7 +28,7 @@ const STATUS_COLOR: Record<string, string> = {
   REGISTRATION_OPEN: 'bg-green-500/10 text-green-700 border-green-200',
   REGISTRATION_CLOSED: 'bg-orange-500/10 text-orange-600 border-orange-200',
   IN_PROGRESS: 'bg-primary/10 text-primary border-primary/20',
-  JUDGING: 'bg-purple-500/10 text-purple-600 border-purple-200',
+  JUDGING: 'bg-cyan-500/10 text-cyan-700 border-cyan-200',
   COMPLETED: 'bg-gray-500/10 text-gray-600 border-gray-200',
   ARCHIVED: 'bg-gray-300/10 text-gray-400 border-gray-100',
 };

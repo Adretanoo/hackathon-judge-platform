@@ -141,7 +141,7 @@ export function ExportTab({ hackathon }: ExportTabProps) {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <PreviewStat icon={<Trophy className="h-4 w-4 text-amber-500" />} label="Tracks" value={hackathon.tracks?.length ?? 0} />
             <PreviewStat icon={<Users className="h-4 w-4 text-blue-500" />} label="Stages" value={hackathon.stages?.length ?? 0} />
-            <PreviewStat icon={<FileText className="h-4 w-4 text-purple-500" />} label="Status" value={hackathon.status.replace('_', ' ')} />
+            <PreviewStat icon={<FileText className="h-4 w-4 text-sky-500" />} label="Status" value={hackathon.status.replace('_', ' ')} />
             <PreviewStat
               icon={<CheckCircle2 className="h-4 w-4 text-emerald-500" />}
               label="Ready"

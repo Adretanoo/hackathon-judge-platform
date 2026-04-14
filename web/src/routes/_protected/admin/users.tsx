@@ -18,14 +18,14 @@ function AdminUsersPage() {
   const [search, setSearch] = useState('');
   const [editingUser, setEditingUser] = useState<any | null>(null);
 
-  const { data: users, isLoading } = useQuery({
+  const { data: users = [], isLoading, isError } = useQuery({
     queryKey: ['admin', 'users', search],
     queryFn: async () => {
       const { data } = await authClient.get('/users', {
         params: { limit: 100, search: search || undefined },
       });
       return data.data?.items || [];
-    }
+    },
   });
 
   const deleteMutation = useMutation({
@@ -63,7 +63,22 @@ function AdminUsersPage() {
 
       <Card className="border-primary/10 overflow-hidden shadow-sm">
         {isLoading ? (
-          <div className="p-8 text-center text-muted-foreground italic">Завантаження користувачів...</div>
+          <div className="divide-y divide-border/50">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="p-4 flex items-center justify-between">
+                <div className="space-y-2">
+                  <div className="h-4 bg-muted/60 rounded w-40 animate-pulse" />
+                  <div className="h-3 bg-muted/40 rounded w-56 animate-pulse" />
+                </div>
+                <div className="h-8 bg-muted/40 rounded w-24 animate-pulse" />
+              </div>
+            ))}
+          </div>
+        ) : isError ? (
+          <div className="p-12 text-center text-destructive flex flex-col items-center gap-2">
+            <p className="font-bold">Помилка завантаження користувачів</p>
+            <p className="text-sm text-muted-foreground">Перевірте з'єднання або права доступу.</p>
+          </div>
         ) : (
           <div className="divide-y divide-border/50">
             {users.map((user: any) => (
@@ -77,7 +92,7 @@ function AdminUsersPage() {
                  </div>
                  <div className="flex items-center gap-4">
                     <Badge variant="outline" className="uppercase font-bold text-[10px] bg-primary/5 text-primary">
-                      {user.roles?.[0]?.role || 'PARTICIPANT'}
+                      {user.roles?.find((r: any) => !r.hackathonId)?.role || 'PARTICIPANT'}
                     </Badge>
                     <div className="flex items-center gap-2">
                       <Button variant="ghost" size="sm" className="gap-2" onClick={() => setEditingUser(user)}>

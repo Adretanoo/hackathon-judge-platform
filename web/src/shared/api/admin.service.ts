@@ -154,7 +154,7 @@ export const adminApi = {
   },
 
   updateProjectStatus: async (projectId: string, status: string) => {
-    const { data } = await authClient.patch(`/projects/${projectId}`, { status });
+    const { data } = await authClient.patch(`/projects/${projectId}/status`, { status });
     return data.data;
   },
 

@@ -69,11 +69,12 @@ export function Sidebar({ className }: SidebarProps) {
               <Link
                 key={item.href}
                 to={item.href}
+                activeOptions={{ exact: item.href === '/dashboard' || item.href === '/admin' }}
                 activeProps={{ className: "bg-primary text-primary-foreground font-semibold shadow-md" }}
-                inactiveProps={{ className: "text-muted-foreground hover:bg-accent hover:text-accent-foreground" }}
+                inactiveProps={{ className: "text-muted-foreground hover:bg-accent/10 hover:text-foreground" }}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200"
               >
-                <item.icon className="h-4 w-4" />
+                <item.icon className="h-4 w-4 shrink-0" />
                 {item.label}
               </Link>
             ))}

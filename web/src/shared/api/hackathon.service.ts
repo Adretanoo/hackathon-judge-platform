@@ -2,12 +2,13 @@ import { authClient } from './auth-client';
 
 export const HackathonStatus = {
   DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
   REGISTRATION_OPEN: 'REGISTRATION_OPEN',
   REGISTRATION_CLOSED: 'REGISTRATION_CLOSED',
-  ONGOING: 'ONGOING',
+  IN_PROGRESS: 'IN_PROGRESS',
   JUDGING: 'JUDGING',
   COMPLETED: 'COMPLETED',
-  ARCHIVED: 'ARCHIVED'
+  ARCHIVED: 'ARCHIVED',
 } as const;
 
 export type HackathonStatus = typeof HackathonStatus[keyof typeof HackathonStatus];

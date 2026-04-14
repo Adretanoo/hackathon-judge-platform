@@ -17,7 +17,7 @@ export const Route = createFileRoute('/_protected/admin/teams')({
 const TEAM_STATUS_COLOR: Record<string, string> = {
   FORMING: 'bg-blue-500/10 text-blue-600',
   COMPLETE: 'bg-green-500/10 text-green-700',
-  SUBMITTED: 'bg-purple-500/10 text-purple-600',
+  SUBMITTED: 'bg-cyan-500/10 text-cyan-700',
   DISQUALIFIED: 'bg-destructive/10 text-destructive',
 };
 

@@ -10,7 +10,7 @@ function Index() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       <div className="space-y-4 max-w-2xl">
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tighter bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
+        <h1 className="text-5xl md:text-7xl font-bold tracking-tighter bg-gradient-to-r from-primary to-sky-400 bg-clip-text text-transparent">
           Hackathon Judge Platform
         </h1>
         <p className="text-xl text-muted-foreground font-medium italic">

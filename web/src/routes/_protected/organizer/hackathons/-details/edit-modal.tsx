@@ -44,7 +44,7 @@ const STATUS_OPTIONS: { value: HackathonStatus; label: string; color: string }[]
   { value: 'REGISTRATION_OPEN', label: 'Registration Open', color: 'bg-blue-100 text-blue-700' },
   { value: 'REGISTRATION_CLOSED', label: 'Registration Closed', color: 'bg-orange-100 text-orange-700' },
   { value: 'ONGOING', label: 'Ongoing', color: 'bg-green-100 text-green-700' },
-  { value: 'JUDGING', label: 'Judging', color: 'bg-purple-100 text-purple-700' },
+  { value: 'JUDGING', label: 'Judging', color: 'bg-cyan-100 text-cyan-700' },
   { value: 'COMPLETED', label: 'Completed', color: 'bg-emerald-100 text-emerald-700' },
   { value: 'ARCHIVED', label: 'Archived', color: 'bg-zinc-100 text-zinc-600' },
 ];

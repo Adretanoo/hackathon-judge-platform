@@ -26,7 +26,7 @@ const STATUS_COLOR: Record<string, string> = {
   REGISTRATION_OPEN: 'bg-green-500/10 text-green-700',
   REGISTRATION_CLOSED: 'bg-orange-500/10 text-orange-600',
   IN_PROGRESS: 'bg-primary/10 text-primary',
-  JUDGING: 'bg-purple-500/10 text-purple-600',
+  JUDGING: 'bg-cyan-500/10 text-cyan-700',
   COMPLETED: 'bg-gray-500/10 text-gray-600',
   ARCHIVED: 'bg-gray-300/10 text-gray-400',
 };
@@ -104,7 +104,7 @@ function AdminDashboardPage() {
           label="Projects"
           value={statsLoading ? '...' : String(stats?.projects.total ?? 0)}
           sub="All statuses"
-          color="text-purple-500"
+          color="text-sky-500"
           href="/admin/projects"
         />
         <StatCard
@@ -205,7 +205,7 @@ function AdminDashboardPage() {
                       <p className="text-xs text-muted-foreground truncate">{u.email}</p>
                     </div>
                     <Badge variant="outline" className="ml-auto text-[9px] uppercase font-black shrink-0">
-                      {u.roles?.[0]?.roleName || 'USER'}
+                      {u.roles?.find((r: any) => !r.hackathonId)?.role || 'USER'}
                     </Badge>
                   </div>
                 ))}
@@ -224,7 +224,7 @@ function AdminDashboardPage() {
                 <Link to="/admin/hackathons"><Trophy className="w-4 h-4 text-yellow-500" /> Create Hackathon</Link>
               </Button>
               <Button asChild variant="outline" className="w-full justify-start gap-2 bg-background/80">
-                <Link to="/admin/judges"><Shield className="w-4 h-4 text-purple-500" /> Review Conflicts</Link>
+                <Link to="/admin/judges"><Shield className="w-4 h-4 text-primary" /> Review Conflicts</Link>
               </Button>
               <Button asChild variant="outline" className="w-full justify-start gap-2 bg-background/80">
                 <Link to="/admin/leaderboard"><TrendingUp className="w-4 h-4 text-blue-500" /> Leaderboard</Link>

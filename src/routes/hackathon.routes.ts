@@ -159,7 +159,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
       },
       preHandler: [
         app.authenticate,
-        hasRole([RoleName.ORGANIZER], { context: 'hackathon', paramName: 'id' }),
+        hasRole([RoleName.ORGANIZER, RoleName.GLOBAL_ADMIN], { context: 'hackathon', paramName: 'id' }),
       ],
     },
     (req, reply) => {

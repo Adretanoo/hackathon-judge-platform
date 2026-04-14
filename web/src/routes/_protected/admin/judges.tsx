@@ -78,7 +78,7 @@ function AdminJudgesPage() {
       <div className="flex items-center justify-between border-b pb-5">
         <div>
           <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
-            <Shield className="w-7 h-7 text-purple-500" /> Judges & Conflicts
+            <Shield className="w-7 h-7 text-primary" /> Judges &amp; Conflicts
           </h1>
           <p className="text-muted-foreground mt-1">Судді, призначення та конфлікти інтересів.</p>
         </div>
@@ -159,7 +159,7 @@ function AdminJudgesPage() {
               {judgesList.map((j: any) => (
                 <div key={j.id} className="grid grid-cols-[1fr_200px_120px] gap-4 px-5 py-4 items-center hover:bg-muted/10">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-purple-500/10 text-purple-600 font-black text-sm flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-black text-sm flex items-center justify-center">
                       {(j.judge?.fullName || '?')[0]}
                     </div>
                     <div>

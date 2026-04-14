@@ -74,7 +74,7 @@ function AdminProjectsPage() {
       <div className="flex items-center justify-between border-b pb-5">
         <div>
           <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
-            <Rocket className="w-7 h-7 text-purple-500" /> Projects
+            <Rocket className="w-7 h-7 text-primary" /> Projects
           </h1>
           <p className="text-muted-foreground mt-1">Всі проекти платформи. Всього: <strong>{total}</strong></p>
         </div>

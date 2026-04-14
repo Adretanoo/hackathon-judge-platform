@@ -70,7 +70,7 @@ function ParticipantDashboard() {
           title="Project" 
           value="In Progress" 
           description="75% complete"
-          color="text-purple-500"
+          color="text-sky-500"
         />
         <StatsCard 
           icon={<MessageSquare className="w-5 h-5" />} 
@@ -185,7 +185,7 @@ function JudgeDashboard() {
         title="Judge Groups" 
         value="Tech & UI/UX" 
         description="Assigned categories"
-        color="text-purple-500"
+        color="text-sky-500"
       />
     </div>
   );

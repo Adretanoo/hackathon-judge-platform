@@ -42,7 +42,7 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   REGISTRATION_OPEN:   { label: 'Registration Open', className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
   REGISTRATION_CLOSED: { label: 'Registration Closed', className: 'bg-amber-100 text-amber-700' },
   ONGOING:             { label: 'Hacking 🔥',        className: 'bg-primary/10 text-primary' },
-  JUDGING:             { label: 'Judging',            className: 'bg-purple-100 text-purple-700' },
+  JUDGING:             { label: 'Judging',            className: 'bg-cyan-100 text-cyan-700' },
   COMPLETED:           { label: 'Finished',           className: 'bg-muted text-muted-foreground' },
 };
 

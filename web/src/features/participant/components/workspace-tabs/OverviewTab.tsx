@@ -47,7 +47,7 @@ const STAGE_STATUS: Record<string, string> = {
   REGISTRATION_OPEN:   'bg-emerald-500 text-white',
   REGISTRATION_CLOSED: 'bg-amber-500 text-white',
   ONGOING:             'bg-primary text-primary-foreground',
-  JUDGING:             'bg-purple-500 text-white',
+  JUDGING:             'bg-cyan-500 text-white',
   COMPLETED:           'bg-muted-foreground text-background',
 };
 

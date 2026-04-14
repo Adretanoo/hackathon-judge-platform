@@ -38,10 +38,11 @@ interface OverviewTabProps {
 
 // Status transition map: current status → allowed next statuses
 const STATUS_TRANSITIONS: Record<string, HackathonStatus[]> = {
-  DRAFT: [HackathonStatus.REGISTRATION_OPEN],
-  REGISTRATION_OPEN: [HackathonStatus.REGISTRATION_CLOSED, HackathonStatus.ONGOING],
-  REGISTRATION_CLOSED: [HackathonStatus.ONGOING],
-  ONGOING: [HackathonStatus.JUDGING],
+  DRAFT: [HackathonStatus.PUBLISHED, HackathonStatus.REGISTRATION_OPEN],
+  PUBLISHED: [HackathonStatus.REGISTRATION_OPEN, HackathonStatus.DRAFT],
+  REGISTRATION_OPEN: [HackathonStatus.REGISTRATION_CLOSED, HackathonStatus.IN_PROGRESS],
+  REGISTRATION_CLOSED: [HackathonStatus.IN_PROGRESS],
+  IN_PROGRESS: [HackathonStatus.JUDGING],
   JUDGING: [HackathonStatus.COMPLETED],
   COMPLETED: [HackathonStatus.ARCHIVED],
   ARCHIVED: [],
@@ -49,9 +50,10 @@ const STATUS_TRANSITIONS: Record<string, HackathonStatus[]> = {
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Draft',
+  PUBLISHED: 'Published',
   REGISTRATION_OPEN: 'Registration Open',
   REGISTRATION_CLOSED: 'Registration Closed',
-  ONGOING: 'Ongoing',
+  IN_PROGRESS: 'In Progress',
   JUDGING: 'Judging',
   COMPLETED: 'Completed',
   ARCHIVED: 'Archived',
@@ -59,9 +61,10 @@ const STATUS_LABELS: Record<string, string> = {
 
 const STATUS_BADGE_VARIANT: Record<string, 'default' | 'secondary' | 'outline'> = {
   DRAFT: 'secondary',
+  PUBLISHED: 'outline',
   REGISTRATION_OPEN: 'default',
   REGISTRATION_CLOSED: 'outline',
-  ONGOING: 'default',
+  IN_PROGRESS: 'default',
   JUDGING: 'default',
   COMPLETED: 'secondary',
   ARCHIVED: 'outline',
