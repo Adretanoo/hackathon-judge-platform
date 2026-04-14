@@ -30,19 +30,35 @@ export function StagesTab({ hackathon }: { hackathon: Hackathon }) {
     }
   });
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
+
     const stages = hackathon.stages || [];
     const oldIndex = stages.findIndex((s) => s.id === active.id);
     const newIndex = stages.findIndex((s) => s.id === over.id);
-    const newOrder = arrayMove(stages, oldIndex, newIndex);
-    
-    toast.info('Оновлення порядку (Оптимістично)...');
+    const newOrder = arrayMove(stages, oldIndex, newIndex).map((s, i) => ({ ...s, orderIndex: i }));
+
+    // Optimistic update
+    const previousData = queryClient.getQueryData<Hackathon>(['hackathon', hackathon.id]);
     queryClient.setQueryData(['hackathon', hackathon.id], (old: Hackathon) => ({
       ...old,
-      stages: newOrder.map((s, i) => ({ ...s, orderIndex: i }))
+      stages: newOrder,
     }));
+
+    try {
+      await hackathonApi.reorderStages(
+        hackathon.id,
+        newOrder.map((s) => ({ id: s.id, orderIndex: s.orderIndex }))
+      );
+      toast.success('Порядок етапів збережено');
+    } catch {
+      // Rollback on error
+      if (previousData) {
+        queryClient.setQueryData(['hackathon', hackathon.id], previousData);
+      }
+      toast.error('Не вдалося зберегти порядок етапів');
+    }
   };
 
   const openForm = (stage?: Stage) => {

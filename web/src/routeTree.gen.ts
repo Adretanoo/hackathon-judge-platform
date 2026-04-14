@@ -14,11 +14,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProtectedRouteImport } from './routes/_protected'
+import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as InviteTokenRouteImport } from './routes/invite/$token'
+import { Route as ProtectedProfileRouteImport } from './routes/_protected/profile'
 import { Route as ProtectedLeaderboardRouteImport } from './routes/_protected/leaderboard'
 import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
 import { Route as ProtectedTeamsIndexRouteImport } from './routes/_protected/teams/index'
 import { Route as ProtectedProjectsIndexRouteImport } from './routes/_protected/projects/index'
+import { Route as ProtectedProfileIndexRouteImport } from './routes/_protected/profile/index'
 import { Route as ProtectedJudgingIndexRouteImport } from './routes/_protected/judging/index'
 import { Route as ProtectedHackathonsIndexRouteImport } from './routes/_protected/hackathons/index'
 import { Route as ProtectedAdminIndexRouteImport } from './routes/_protected/admin/index'
@@ -60,10 +63,20 @@ const IndexLazyRoute = IndexLazyRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/index.lazy').then((d) => d.Route))
+const JoinTokenRoute = JoinTokenRouteImport.update({
+  id: '/join/$token',
+  path: '/join/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
   id: '/invite/$token',
   path: '/invite/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProtectedProfileRoute = ProtectedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => ProtectedRoute,
 } as any)
 const ProtectedLeaderboardRoute = ProtectedLeaderboardRouteImport.update({
   id: '/leaderboard',
@@ -84,6 +97,11 @@ const ProtectedProjectsIndexRoute = ProtectedProjectsIndexRouteImport.update({
   id: '/projects/',
   path: '/projects/',
   getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedProfileIndexRoute = ProtectedProfileIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProtectedProfileRoute,
 } as any)
 const ProtectedJudgingIndexRoute = ProtectedJudgingIndexRouteImport.update({
   id: '/judging/',
@@ -198,7 +216,9 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/dashboard': typeof ProtectedDashboardRouteWithChildren
   '/leaderboard': typeof ProtectedLeaderboardRoute
+  '/profile': typeof ProtectedProfileRouteWithChildren
   '/invite/$token': typeof InviteTokenRoute
+  '/join/$token': typeof JoinTokenRoute
   '/admin/config': typeof ProtectedAdminConfigRoute
   '/admin/hackathons': typeof ProtectedAdminHackathonsRoute
   '/admin/judges': typeof ProtectedAdminJudgesRoute
@@ -215,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof ProtectedAdminIndexRoute
   '/hackathons/': typeof ProtectedHackathonsIndexRoute
   '/judging/': typeof ProtectedJudgingIndexRoute
+  '/profile/': typeof ProtectedProfileIndexRoute
   '/projects/': typeof ProtectedProjectsIndexRoute
   '/teams/': typeof ProtectedTeamsIndexRoute
   '/organizer/hackathons/$hackathonId': typeof ProtectedOrganizerHackathonsHackathonIdRoute
@@ -228,6 +249,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof ProtectedDashboardRouteWithChildren
   '/leaderboard': typeof ProtectedLeaderboardRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/join/$token': typeof JoinTokenRoute
   '/admin/config': typeof ProtectedAdminConfigRoute
   '/admin/hackathons': typeof ProtectedAdminHackathonsRoute
   '/admin/judges': typeof ProtectedAdminJudgesRoute
@@ -244,6 +266,7 @@ export interface FileRoutesByTo {
   '/admin': typeof ProtectedAdminIndexRoute
   '/hackathons': typeof ProtectedHackathonsIndexRoute
   '/judging': typeof ProtectedJudgingIndexRoute
+  '/profile': typeof ProtectedProfileIndexRoute
   '/projects': typeof ProtectedProjectsIndexRoute
   '/teams': typeof ProtectedTeamsIndexRoute
   '/organizer/hackathons/$hackathonId': typeof ProtectedOrganizerHackathonsHackathonIdRoute
@@ -258,7 +281,9 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/_protected/dashboard': typeof ProtectedDashboardRouteWithChildren
   '/_protected/leaderboard': typeof ProtectedLeaderboardRoute
+  '/_protected/profile': typeof ProtectedProfileRouteWithChildren
   '/invite/$token': typeof InviteTokenRoute
+  '/join/$token': typeof JoinTokenRoute
   '/_protected/admin/config': typeof ProtectedAdminConfigRoute
   '/_protected/admin/hackathons': typeof ProtectedAdminHackathonsRoute
   '/_protected/admin/judges': typeof ProtectedAdminJudgesRoute
@@ -275,6 +300,7 @@ export interface FileRoutesById {
   '/_protected/admin/': typeof ProtectedAdminIndexRoute
   '/_protected/hackathons/': typeof ProtectedHackathonsIndexRoute
   '/_protected/judging/': typeof ProtectedJudgingIndexRoute
+  '/_protected/profile/': typeof ProtectedProfileIndexRoute
   '/_protected/projects/': typeof ProtectedProjectsIndexRoute
   '/_protected/teams/': typeof ProtectedTeamsIndexRoute
   '/_protected/organizer/hackathons/$hackathonId': typeof ProtectedOrganizerHackathonsHackathonIdRoute
@@ -289,7 +315,9 @@ export interface FileRouteTypes {
     | '/register'
     | '/dashboard'
     | '/leaderboard'
+    | '/profile'
     | '/invite/$token'
+    | '/join/$token'
     | '/admin/config'
     | '/admin/hackathons'
     | '/admin/judges'
@@ -306,6 +334,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/hackathons/'
     | '/judging/'
+    | '/profile/'
     | '/projects/'
     | '/teams/'
     | '/organizer/hackathons/$hackathonId'
@@ -319,6 +348,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/leaderboard'
     | '/invite/$token'
+    | '/join/$token'
     | '/admin/config'
     | '/admin/hackathons'
     | '/admin/judges'
@@ -335,6 +365,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/hackathons'
     | '/judging'
+    | '/profile'
     | '/projects'
     | '/teams'
     | '/organizer/hackathons/$hackathonId'
@@ -348,7 +379,9 @@ export interface FileRouteTypes {
     | '/register'
     | '/_protected/dashboard'
     | '/_protected/leaderboard'
+    | '/_protected/profile'
     | '/invite/$token'
+    | '/join/$token'
     | '/_protected/admin/config'
     | '/_protected/admin/hackathons'
     | '/_protected/admin/judges'
@@ -365,6 +398,7 @@ export interface FileRouteTypes {
     | '/_protected/admin/'
     | '/_protected/hackathons/'
     | '/_protected/judging/'
+    | '/_protected/profile/'
     | '/_protected/projects/'
     | '/_protected/teams/'
     | '/_protected/organizer/hackathons/$hackathonId'
@@ -378,6 +412,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   InviteTokenRoute: typeof InviteTokenRoute
+  JoinTokenRoute: typeof JoinTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -410,12 +445,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/join/$token': {
+      id: '/join/$token'
+      path: '/join/$token'
+      fullPath: '/join/$token'
+      preLoaderRoute: typeof JoinTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/invite/$token': {
       id: '/invite/$token'
       path: '/invite/$token'
       fullPath: '/invite/$token'
       preLoaderRoute: typeof InviteTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_protected/profile': {
+      id: '/_protected/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProtectedProfileRouteImport
+      parentRoute: typeof ProtectedRoute
     }
     '/_protected/leaderboard': {
       id: '/_protected/leaderboard'
@@ -444,6 +493,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/projects/'
       preLoaderRoute: typeof ProtectedProjectsIndexRouteImport
       parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/profile/': {
+      id: '/_protected/profile/'
+      path: '/'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof ProtectedProfileIndexRouteImport
+      parentRoute: typeof ProtectedProfileRoute
     }
     '/_protected/judging/': {
       id: '/_protected/judging/'
@@ -592,9 +648,21 @@ const ProtectedDashboardRouteChildren: ProtectedDashboardRouteChildren = {
 const ProtectedDashboardRouteWithChildren =
   ProtectedDashboardRoute._addFileChildren(ProtectedDashboardRouteChildren)
 
+interface ProtectedProfileRouteChildren {
+  ProtectedProfileIndexRoute: typeof ProtectedProfileIndexRoute
+}
+
+const ProtectedProfileRouteChildren: ProtectedProfileRouteChildren = {
+  ProtectedProfileIndexRoute: ProtectedProfileIndexRoute,
+}
+
+const ProtectedProfileRouteWithChildren =
+  ProtectedProfileRoute._addFileChildren(ProtectedProfileRouteChildren)
+
 interface ProtectedRouteChildren {
   ProtectedDashboardRoute: typeof ProtectedDashboardRouteWithChildren
   ProtectedLeaderboardRoute: typeof ProtectedLeaderboardRoute
+  ProtectedProfileRoute: typeof ProtectedProfileRouteWithChildren
   ProtectedAdminConfigRoute: typeof ProtectedAdminConfigRoute
   ProtectedAdminHackathonsRoute: typeof ProtectedAdminHackathonsRoute
   ProtectedAdminJudgesRoute: typeof ProtectedAdminJudgesRoute
@@ -620,6 +688,7 @@ interface ProtectedRouteChildren {
 const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedDashboardRoute: ProtectedDashboardRouteWithChildren,
   ProtectedLeaderboardRoute: ProtectedLeaderboardRoute,
+  ProtectedProfileRoute: ProtectedProfileRouteWithChildren,
   ProtectedAdminConfigRoute: ProtectedAdminConfigRoute,
   ProtectedAdminHackathonsRoute: ProtectedAdminHackathonsRoute,
   ProtectedAdminJudgesRoute: ProtectedAdminJudgesRoute,
@@ -655,6 +724,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   InviteTokenRoute: InviteTokenRoute,
+  JoinTokenRoute: JoinTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

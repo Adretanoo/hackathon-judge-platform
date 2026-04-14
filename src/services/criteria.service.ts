@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { CreateCriteriaPayload } from '../schemas/criteria.schema';
+import { CreateCriteriaPayload, UpdateCriteriaPayload } from '../schemas/criteria.schema';
 import { NotFoundError, ForbiddenError } from '../utils/errors';
 import { RoleName } from '@prisma/client';
 
@@ -70,6 +70,28 @@ export class CriteriaService {
     await this.app.prisma.criteria.delete({ where: { id: criterionId } });
     return { deleted: true };
   }
+
+  /**
+   * Update an existing criterion (organizer or GLOBAL_ADMIN only)
+   */
+  async updateCriteria(hackathonId: string, criterionId: string, userId: string, hasGlobalAdmin: boolean, data: UpdateCriteriaPayload) {
+    await this.requireHackathonAdmin(hackathonId, userId, hasGlobalAdmin);
+
+    const criterion = await this.app.prisma.criteria.findUnique({
+      where: { id: criterionId },
+      include: { track: { select: { hackathonId: true } } },
+    });
+
+    if (!criterion || criterion.track.hackathonId !== hackathonId) {
+      throw new NotFoundError('Criterion not found in this hackathon');
+    }
+
+    return await this.app.prisma.criteria.update({
+      where: { id: criterionId },
+      data,
+    });
+  }
+
 
   /**
    * Get criteria for a hackathon

@@ -113,6 +113,15 @@ export const hackathonApi = {
     return data.data;
   },
 
+  reorderStages: async (hackathonId: string, stages: Array<{ id: string; orderIndex: number }>) => {
+    // No dedicated reorder endpoint — update each stage's orderIndex individually in parallel
+    await Promise.all(
+      stages.map((s) =>
+        authClient.put(`${API_BASE}/${hackathonId}/stages/${s.id}`, { orderIndex: s.orderIndex })
+      )
+    );
+  },
+
   // ─── Tracks ──────────────────────────────────────────────────────────────────
   createTrack: async (id: string, payload: any) => {
     const { data } = await authClient.post(`${API_BASE}/${id}/tracks`, payload);
@@ -152,6 +161,15 @@ export const hackathonApi = {
 
   deleteCriteria: async (hackathonId: string, criterionId: string) => {
     const { data } = await authClient.delete(`${API_BASE}/${hackathonId}/criteria/${criterionId}`);
+    return data.data;
+  },
+
+  updateCriteria: async (
+    hackathonId: string,
+    criterionId: string,
+    payload: { name?: string; description?: string; weight?: number; maxScore?: number }
+  ) => {
+    const { data } = await authClient.patch(`${API_BASE}/${hackathonId}/criteria/${criterionId}`, payload);
     return data.data;
   },
 

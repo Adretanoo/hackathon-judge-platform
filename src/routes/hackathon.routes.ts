@@ -31,6 +31,7 @@ import {
   createCriteriaHandler,
   getCriteriaForHackathonHandler,
   deleteCriteriaHandler,
+  updateCriteriaHandler,
 } from '../controllers/criteria.controller';
 import {
   createHackathonSchema,
@@ -44,7 +45,7 @@ import {
   updateAwardSchema,
   assignJudgeSchema,
 } from '../schemas/hackathon.schema';
-import { createCriteriaSchema } from '../schemas/criteria.schema';
+import { createCriteriaSchema, updateCriteriaSchema } from '../schemas/criteria.schema';
 
 const errorSchema = {
   type: 'object',
@@ -376,6 +377,26 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
       },
     },
     getCriteriaForHackathonHandler as any
+  );
+
+  app.patch(
+    '/:id/criteria/:criterionId',
+    {
+      schema: {
+        tags: ['Hackathons', 'Criteria'],
+        summary: 'Update a judging criterion',
+        security: [{ BearerAuth: [] }],
+        response: { 200: genericSuccessSchema, 404: errorSchema },
+      },
+      preHandler: [
+        app.authenticate,
+        hasRole([RoleName.ORGANIZER, RoleName.GLOBAL_ADMIN], { context: 'hackathon', paramName: 'id' }),
+      ],
+    },
+    (req, reply) => {
+      req.body = updateCriteriaSchema.parse(req.body);
+      return updateCriteriaHandler(req as any, reply);
+    }
   );
 
   app.delete(

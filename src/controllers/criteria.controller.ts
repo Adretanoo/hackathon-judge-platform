@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { CriteriaService } from '../services/criteria.service';
 import { successResponse } from '../utils/response';
-import { CreateCriteriaPayload } from '../schemas/criteria.schema';
+import { CreateCriteriaPayload, UpdateCriteriaPayload } from '../schemas/criteria.schema';
 import { RoleName } from '@prisma/client';
 
 export async function createCriteriaHandler(req: FastifyRequest<{ Params: { id: string }, Body: CreateCriteriaPayload }>, reply: FastifyReply) {
@@ -35,3 +35,15 @@ export async function deleteCriteriaHandler(
   const result = await service.deleteCriteria(req.params.id, req.params.criterionId, userId, hasGlobalAdmin);
   return reply.status(200).send(successResponse(result));
 }
+
+export async function updateCriteriaHandler(
+  req: FastifyRequest<{ Params: { id: string; criterionId: string }; Body: UpdateCriteriaPayload }>,
+  reply: FastifyReply,
+) {
+  const service = new CriteriaService(req.server);
+  const userId = (req.user as any)!.sub;
+  const hasGlobalAdmin = (req.user as any)!.role === RoleName.GLOBAL_ADMIN;
+  const updated = await service.updateCriteria(req.params.id, req.params.criterionId, userId, hasGlobalAdmin, req.body);
+  return reply.status(200).send(successResponse(updated));
+}
+
