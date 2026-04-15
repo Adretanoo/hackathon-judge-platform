@@ -38,10 +38,7 @@ export async function judgingRoutes(app: FastifyInstance): Promise<void> {
       },
       preHandler: [
         app.authenticate,
-        hasRole([RoleName.JUDGE, RoleName.ORGANIZER, RoleName.GLOBAL_ADMIN], { 
-          context: 'hackathon', 
-          paramName: 'hackathonId'
-        })
+        hasRole([RoleName.JUDGE, RoleName.ORGANIZER, RoleName.GLOBAL_ADMIN])
       ]
     },
     listJudgingProjectsHandler as any

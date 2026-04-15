@@ -58,7 +58,9 @@ export class LeaderboardService {
         status: { in: ['SUBMITTED', 'UNDER_REVIEW', 'ACCEPTED', 'DRAFT'] },
       },
       include: {
-        team: true,
+        team: {
+          include: { track: true }
+        },
         scores: {
           include: { criteria: true },
         },
@@ -110,9 +112,11 @@ export class LeaderboardService {
         projectId: proj.id,
         projectTitle: proj.title,
         teamName: proj.team.name,
+        track: proj.team.track?.name || 'Global',
         totalRawScore: Number(proj.totalScore || 0),
         averageRawScore: Number(proj.averageScore || 0),
         normalizedScore: normalizedTotal,
+        judgeCount: new Set(proj.scores.map((s: any) => s.judgeId)).size,
         rank: 0, // Will be set later
       };
     });

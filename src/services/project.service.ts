@@ -137,12 +137,13 @@ export class ProjectService {
   /**
    * List projects
    */
-  async listProjects(page: number, limit: number, filters: { teamId?: string; hackathonId?: string; judgeId?: string; status?: ProjectStatus }) {
+  async listProjects(page: number, limit: number, filters: { teamId?: string; hackathonId?: string; judgeId?: string; status?: ProjectStatus; statuses?: ProjectStatus[] }) {
     const skip = (page - 1) * limit;
 
     const where: any = {};
     if (filters.teamId) where.teamId = filters.teamId;
     if (filters.status) where.status = filters.status;
+    if (filters.statuses) where.status = { in: filters.statuses };
     
     if (filters.judgeId) {
       // Find what this judge is allowed to see in this hackathon
@@ -156,12 +157,14 @@ export class ProjectService {
       console.log("JudgeAssignments: ", assignments);
 
       if (assignments.length > 0) {
-        where.team = {
-          hackathonId: filters.hackathonId,
-          OR: assignments.map(a => ({
-            trackId: a.trackId === null ? undefined : a.trackId
-          }))
-        };
+        const trackIds = assignments.map(a => a.trackId).filter(id => id !== null);
+        const hasGlobalAssignment = assignments.some(a => a.trackId === null);
+
+        where.team = { hackathonId: filters.hackathonId };
+        
+        if (!hasGlobalAssignment && trackIds.length > 0) {
+          where.team.trackId = { in: trackIds };
+        }
       } else {
         // Fallback for DEV mode
         console.log("No JudgeAssignments found. DEV Fallback: showing all projects in hackathon");

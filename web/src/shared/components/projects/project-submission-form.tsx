@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectApi } from '@/shared/api/project.service';
 import type { Project } from '@/shared/api/project.service';
@@ -68,6 +68,17 @@ export function ProjectSubmissionForm({ teamId, initialData, onSuccess }: Projec
     initialData?.resources?.map(r => ({ ...r, id: r.id })) || []
   );
 
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.title || '');
+      setDescription(initialData.description || '');
+      setRepoUrl(initialData.repoUrl || '');
+      setDemoUrl(initialData.demoUrl || '');
+      setTechStack(initialData.techStack || []);
+      setResources(initialData.resources?.map(r => ({ ...r, id: r.id })) || []);
+    }
+  }, [initialData]);
+
   const mutation = useMutation({
     mutationFn: (payload: any) => 
       initialData 
@@ -113,13 +124,27 @@ export function ProjectSubmissionForm({ teamId, initialData, onSuccess }: Projec
     setResources(resources.map(r => r.id === id ? { ...r, [field]: value } : r));
   };
 
-  const addTech = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && newTech.trim()) {
+  const addTech = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
       e.preventDefault();
-      if (!techStack.includes(newTech.trim())) {
-        setTechStack([...techStack, newTech.trim()]);
+      const val = newTech.trim();
+      if (val && !techStack.includes(val)) {
+        setTechStack(prev => [...prev, val]);
       }
       setNewTech('');
+    }
+  };
+
+  const handleTechChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (val.endsWith(',')) {
+      const newTag = val.slice(0, -1).trim();
+      if (newTag && !techStack.includes(newTag)) {
+        setTechStack(prev => [...prev, newTag]);
+      }
+      setNewTech('');
+    } else {
+      setNewTech(val);
     }
   };
 
@@ -217,7 +242,7 @@ export function ProjectSubmissionForm({ teamId, initialData, onSuccess }: Projec
                  <Input 
                   placeholder="e.g. React, Node.js, TensorFlow" 
                   value={newTech}
-                  onChange={(e) => setNewTech(e.target.value)}
+                  onChange={handleTechChange}
                   onKeyDown={addTech}
                   className="bg-transparent border-primary/20 shadow-sm focus-visible:ring-primary"
                  />
@@ -338,12 +363,14 @@ function SortableResource({ resource, onUpdate, onRemove }: SortableResourceProp
           placeholder="Resource Label (e.g. Documentation)" 
           value={resource.label}
           onChange={(e) => onUpdate(resource.id, 'label', e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
           className="bg-muted/30 border-none shadow-none focus-visible:ring-1 focus-visible:ring-primary/20"
         />
         <Input 
           placeholder="URL (https://...)" 
           value={resource.url}
           onChange={(e) => onUpdate(resource.id, 'url', e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
           className="bg-muted/30 border-none shadow-none focus-visible:ring-1 focus-visible:ring-primary/20"
         />
       </div>

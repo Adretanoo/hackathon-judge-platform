@@ -142,7 +142,7 @@ function AdminLeaderboardPage() {
                   </div>
 
                   <div className="text-sm text-muted-foreground">
-                    {entry.track?.name || entry.trackName || '—'}
+                    {entry.track?.name || entry.trackName || entry.track || '—'}
                   </div>
 
                   <div>
@@ -153,17 +153,17 @@ function AdminLeaderboardPage() {
                       rank === 3 && 'text-orange-500',
                       rank > 3 && 'text-foreground',
                     )}>
-                      {entry.totalScore != null
-                        ? Number(entry.totalScore).toFixed(1)
-                        : entry.averageScore != null
-                          ? Number(entry.averageScore).toFixed(1)
+                      {entry.normalizedScore != null
+                        ? Number(entry.normalizedScore).toFixed(2)
+                        : entry.totalRawScore != null
+                          ? Number(entry.totalRawScore).toFixed(1)
                           : '—'}
                     </span>
                     <span className="text-xs text-muted-foreground ml-1">pts</span>
                   </div>
 
                   <div className="text-sm text-muted-foreground">
-                    {entry.projectCount ?? '—'} проектів
+                    {entry.projectCount ?? 1} проект
                   </div>
                 </div>
               );

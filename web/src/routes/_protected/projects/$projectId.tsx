@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { projectApi } from '@/shared/api/project.service';
 import type { ProjectStatus } from '@/shared/api/project.service';
@@ -37,7 +37,7 @@ const statusColors: Record<string, string> = {
   DRAFT: 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800/50 dark:text-slate-400 dark:border-slate-800',
   SUBMITTED: 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/20 dark:border-blue-500/30',
   UNDER_REVIEW: 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/20 dark:border-amber-500/30',
-  REVIEWED: 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:border-emerald-500/30',
+  ACCEPTED: 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:border-emerald-500/30',
   WINNER: 'bg-gradient-to-r from-yellow-400 to-amber-600 text-white border-none shadow-lg shadow-yellow-400/20',
   ARCHIVED: 'bg-zinc-100 text-zinc-500 border-zinc-200 dark:bg-zinc-800/50 dark:text-zinc-400 dark:border-zinc-800',
 };
@@ -73,10 +73,8 @@ function ProjectDetailPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-700">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" asChild className="-ml-2 hover:bg-primary/5 text-muted-foreground hover:text-primary">
-          <Link to={"/dashboard/projects" as any}>
-            <ChevronLeft className="h-4 w-4 mr-1" /> Back to My Projects
-          </Link>
+        <Button variant="ghost" size="sm" onClick={() => window.history.back()} className="-ml-2 hover:bg-primary/5 text-muted-foreground hover:text-primary">
+          <ChevronLeft className="h-4 w-4 mr-1" /> Back
         </Button>
       </div>
 
@@ -213,7 +211,7 @@ function ProjectDetailPage() {
                  {project.status === 'UNDER_REVIEW' && (
                    <Button 
                     className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 gap-2"
-                    onClick={() => statusMutation.mutate('REVIEWED')}
+                    onClick={() => statusMutation.mutate('ACCEPTED' as any)}
                     disabled={statusMutation.isPending}
                    >
                      <CheckCircle2 className="h-4 w-4" /> Mark Reviewed

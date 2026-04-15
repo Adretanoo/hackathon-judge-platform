@@ -12,7 +12,7 @@ export async function listJudgingProjectsHandler(req: FastifyRequest<{ Querystri
   const result = await service.listProjects(1, 100, {
     hackathonId,
     judgeId,
-    status: ProjectStatus.SUBMITTED // Judges only evaluate submitted projects
+    statuses: [ProjectStatus.SUBMITTED, ProjectStatus.UNDER_REVIEW, ProjectStatus.ACCEPTED]
   });
 
   return reply.status(200).send(successResponse(result));

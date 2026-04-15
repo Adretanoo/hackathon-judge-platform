@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAuth } from '@/app/providers/auth-provider';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { teamApi } from '@/shared/api/team.service';
@@ -51,6 +52,7 @@ export const Route = createFileRoute('/_protected/teams/$teamId' as any)({
 });
 
 function TeamDetailPage() {
+  const { user } = useAuth();
   const { teamId } = Route.useParams() as any;
   const queryClient = useQueryClient();
   const [isCopied, setIsCopied] = useState(false);
@@ -65,6 +67,8 @@ function TeamDetailPage() {
     queryKey: ['team', teamId],
     queryFn: () => teamApi.getById(teamId),
   });
+
+  const isMember = team?.members?.some((m: TeamMember) => m.userId === user?.id);
 
   const { data: project, isLoading: isProjectLoading } = useQuery({
     queryKey: ['team-project', teamId],
@@ -187,9 +191,11 @@ function TeamDetailPage() {
                  </DialogFooter>
               </DialogContent>
            </Dialog>
-           <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive hover:text-white">
-              <LogOut className="h-4 w-4" /> Leave Team
-           </Button>
+           {isMember && (
+             <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive hover:text-white">
+                <LogOut className="h-4 w-4" /> Leave Team
+             </Button>
+           )}
         </div>
       </div>
 

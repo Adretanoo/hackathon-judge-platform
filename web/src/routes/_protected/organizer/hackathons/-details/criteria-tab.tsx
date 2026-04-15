@@ -47,7 +47,7 @@ export function CriteriaTab({ hackathon }: CriteriaTabProps) {
   });
 
   const [deleteTarget, setDeleteTarget] = useState<Criterion | null>(null);
-  const [expandedTrack, setExpandedTrack] = useState<string | null>(null);
+  const [expandedTracks, setExpandedTracks] = useState<Record<string, boolean>>({});
 
   const tracks = hackathon.tracks ?? [];
 
@@ -112,7 +112,7 @@ export function CriteriaTab({ hackathon }: CriteriaTabProps) {
       {/* Track Criteria Sections */}
       {tracks.map((track: any) => {
         const criteria = getCriteriaForTrack(track.id);
-        const isExpanded = expandedTrack === track.id || expandedTrack === null;
+        const isExpanded = expandedTracks[track.id] === true; // closed by default
         const weight = totalWeight(criteria);
         const weightOk = Math.abs(weight - 1) < 0.01;
 
@@ -121,11 +121,11 @@ export function CriteriaTab({ hackathon }: CriteriaTabProps) {
             {/* Track header */}
             <CardHeader
               className="cursor-pointer select-none hover:bg-muted/30 transition-colors"
-              onClick={() => setExpandedTrack(expandedTrack === track.id ? null : track.id)}
+              onClick={() => setExpandedTracks(prev => ({ ...prev, [track.id]: prev[track.id] === false ? true : false }))}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-wrap">
-                  {expandedTrack === track.id ? (
+                  {isExpanded ? (
                     <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
                   ) : (
                     <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
