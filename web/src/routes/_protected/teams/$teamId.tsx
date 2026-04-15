@@ -18,7 +18,11 @@ import {
   Label,
   Dialog,
   DialogContent,
-  DialogTrigger
+  DialogTrigger,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  Input
 } from '@/shared/ui';
 import { 
   Users, 
@@ -51,6 +55,11 @@ function TeamDetailPage() {
   const queryClient = useQueryClient();
   const [isCopied, setIsCopied] = useState(false);
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
+  
+  // Edit Team state
+  const [isEditTeamOpen, setIsEditTeamOpen] = useState(false);
+  const [editTeamName, setEditTeamName] = useState('');
+  const [editTeamDesc, setEditTeamDesc] = useState('');
 
   const { data: team, isLoading } = useQuery({
     queryKey: ['team', teamId],
@@ -82,6 +91,18 @@ function TeamDetailPage() {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.error?.message || 'Failed to remove member');
+    }
+  });
+
+  const updateTeamMutation = useMutation({
+    mutationFn: (payload: any) => teamApi.update(teamId, payload),
+    onSuccess: () => {
+      toast.success('Team updated successfully');
+      queryClient.invalidateQueries({ queryKey: ['team', teamId] });
+      setIsEditTeamOpen(false);
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error?.message || 'Failed to update team');
     }
   });
 
@@ -118,9 +139,54 @@ function TeamDetailPage() {
         </div>
 
         <div className="flex items-center gap-3">
-           <Button variant="outline" className="gap-2 shadow-sm">
-              <Settings className="h-4 w-4" /> Edit Team
-           </Button>
+           <Dialog open={isEditTeamOpen} onOpenChange={setIsEditTeamOpen}>
+              <DialogTrigger asChild>
+                 <Button 
+                   variant="outline" 
+                   className="gap-2 shadow-sm"
+                   onClick={() => {
+                     setEditTeamName(team.name);
+                     setEditTeamDesc(team.description || '');
+                   }}
+                 >
+                    <Settings className="h-4 w-4" /> Edit Team
+                 </Button>
+              </DialogTrigger>
+              <DialogContent className="border-primary/10 shadow-2xl">
+                 <DialogHeader>
+                    <DialogTitle>Edit Team Details</DialogTitle>
+                 </DialogHeader>
+                 <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                       <Label className="text-xs font-bold uppercase text-muted-foreground">Team Name</Label>
+                       <Input 
+                         value={editTeamName} 
+                         onChange={(e) => setEditTeamName(e.target.value)} 
+                         placeholder="Awesome Team"
+                         className="bg-transparent border-primary/20"
+                       />
+                    </div>
+                    <div className="space-y-2">
+                       <Label className="text-xs font-bold uppercase text-muted-foreground">Description</Label>
+                       <textarea 
+                         value={editTeamDesc} 
+                         onChange={(e) => setEditTeamDesc(e.target.value)} 
+                         placeholder="A brief explanation of your team..."
+                         className="min-h-[100px] w-full rounded-md border border-primary/20 bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                       />
+                    </div>
+                 </div>
+                 <DialogFooter>
+                    <Button variant="ghost" onClick={() => setIsEditTeamOpen(false)}>Cancel</Button>
+                    <Button 
+                      onClick={() => updateTeamMutation.mutate({ name: editTeamName, description: editTeamDesc })}
+                      disabled={!editTeamName || updateTeamMutation.isPending}
+                    >
+                      {updateTeamMutation.isPending ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                 </DialogFooter>
+              </DialogContent>
+           </Dialog>
            <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive hover:text-white">
               <LogOut className="h-4 w-4" /> Leave Team
            </Button>

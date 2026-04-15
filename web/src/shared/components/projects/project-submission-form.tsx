@@ -145,8 +145,8 @@ export function ProjectSubmissionForm({ teamId, initialData, onSuccess }: Projec
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <Card className="border-primary/10 shadow-xl overflow-hidden bg-gradient-to-br from-white to-primary/5">
-        <CardHeader className="border-b border-primary/5 bg-white/50">
+      <Card className="border-primary/10 shadow-xl overflow-hidden bg-gradient-to-br from-white to-primary/5 dark:from-slate-900 dark:to-slate-800/50">
+        <CardHeader className="border-b border-primary/5 bg-white/50 dark:bg-slate-800/50">
            <div className="flex items-center gap-3">
               <div className="p-3 rounded-2xl bg-primary/10 text-primary">
                  <FileText className="h-6 w-6" />
@@ -168,7 +168,7 @@ export function ProjectSubmissionForm({ teamId, initialData, onSuccess }: Projec
                 placeholder="Ex: EcoTracker AI" 
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="bg-white border-primary/10 shadow-sm focus-visible:ring-primary h-12 text-lg font-medium"
+                className="bg-transparent border-primary/20 shadow-sm focus-visible:ring-primary h-12 text-lg font-medium"
               />
             </div>
 
@@ -179,7 +179,7 @@ export function ProjectSubmissionForm({ teamId, initialData, onSuccess }: Projec
                 placeholder="What does your project do? What problem does it solve?" 
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="min-h-[160px] w-full rounded-md border border-primary/10 bg-white px-3 py-2 text-base shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="min-h-[160px] w-full rounded-md border border-primary/20 bg-transparent px-3 py-2 text-base shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               />
             </div>
 
@@ -192,7 +192,7 @@ export function ProjectSubmissionForm({ teamId, initialData, onSuccess }: Projec
                   placeholder="https://github.com/..." 
                   value={repoUrl}
                   onChange={(e) => setRepoUrl(e.target.value)}
-                  className="pl-10 bg-white border-primary/10 shadow-sm focus-visible:ring-primary"
+                  className="pl-10 bg-transparent border-primary/20 shadow-sm focus-visible:ring-primary"
                  />
               </div>
             </div>
@@ -206,7 +206,7 @@ export function ProjectSubmissionForm({ teamId, initialData, onSuccess }: Projec
                   placeholder="https://my-app.vercel.app" 
                   value={demoUrl}
                   onChange={(e) => setDemoUrl(e.target.value)}
-                  className="pl-10 bg-white border-primary/10 shadow-sm focus-visible:ring-primary"
+                  className="pl-10 bg-transparent border-primary/20 shadow-sm focus-visible:ring-primary"
                  />
               </div>
             </div>
@@ -219,7 +219,7 @@ export function ProjectSubmissionForm({ teamId, initialData, onSuccess }: Projec
                   value={newTech}
                   onChange={(e) => setNewTech(e.target.value)}
                   onKeyDown={addTech}
-                  className="bg-white border-primary/10 shadow-sm focus-visible:ring-primary"
+                  className="bg-transparent border-primary/20 shadow-sm focus-visible:ring-primary"
                  />
                  <div className="flex flex-wrap gap-2">
                     {techStack.map(t => (
@@ -236,7 +236,7 @@ export function ProjectSubmissionForm({ teamId, initialData, onSuccess }: Projec
         </CardContent>
       </Card>
 
-      <Card className="border-primary/10 shadow-xl overflow-hidden bg-white/50">
+      <Card className="border-primary/10 shadow-xl overflow-hidden bg-white/50 dark:bg-slate-800/50">
         <CardHeader className="border-b border-primary/5">
            <div className="flex items-center justify-between">
               <div>
@@ -326,7 +326,7 @@ function SortableResource({ resource, onUpdate, onRemove }: SortableResourceProp
       style={style} 
       className={cn(
         "flex items-center gap-4 p-4 transition-all",
-        isDragging ? "bg-primary/10 shadow-2xl relative z-50" : "bg-white hover:bg-primary/[0.01]"
+        isDragging ? "bg-primary/10 shadow-2xl relative z-50" : "bg-transparent dark:hover:bg-slate-800 hover:bg-primary/[0.01]"
       )}
     >
       <button {...attributes} {...listeners} className="p-1 rounded hover:bg-muted cursor-grab active:cursor-grabbing">

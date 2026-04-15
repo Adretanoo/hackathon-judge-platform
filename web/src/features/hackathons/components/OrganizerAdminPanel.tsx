@@ -114,12 +114,6 @@ export function OrganizerAdminPanel({ hackathonId }: OrganizerAdminPanelProps) {
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          <Button variant="outline" size="sm" className="rounded-xl gap-2 font-bold px-4" asChild>
-            <Link to="/leaderboard">
-              <Download className="h-4 w-4" />
-              Quick Export
-            </Link>
-          </Button>
           <Button size="sm" onClick={() => setIsEditOpen(true)} className="rounded-xl gap-2 font-bold px-4 shadow-sm">
             <Settings className="h-4 w-4" />
             Редагувати хакатон

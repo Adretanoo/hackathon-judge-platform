@@ -74,7 +74,7 @@ function ProjectDetailPage() {
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-700">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" asChild className="-ml-2 hover:bg-primary/5 text-muted-foreground hover:text-primary">
-          <Link to={"/_protected/dashboard/projects" as any}>
+          <Link to={"/dashboard/projects" as any}>
             <ChevronLeft className="h-4 w-4 mr-1" /> Back to My Projects
           </Link>
         </Button>

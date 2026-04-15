@@ -84,7 +84,7 @@ export function LeaderboardTab({ hackathon }: LeaderboardTabProps) {
                <div>
                   <p className="text-[10px] uppercase font-bold text-emerald-600">Top Team</p>
                   <p className="text-sm font-bold truncate max-w-[120px]">
-                     {leaderboard?.items?.[0]?.teamName || 'N/A'}
+                     {leaderboard?.entries?.[0]?.teamName || 'N/A'}
                   </p>
                </div>
             </CardContent>
@@ -97,7 +97,7 @@ export function LeaderboardTab({ hackathon }: LeaderboardTabProps) {
                <div>
                   <p className="text-[10px] uppercase font-bold text-primary">Avg. Raw Score</p>
                   <p className="text-sm font-bold">
-                     {leaderboard?.items?.length ? (leaderboard.items.reduce((acc: any, curr: any) => acc + curr.averageRawScore, 0) / leaderboard.items.length).toFixed(1) : '0.0'}
+                     {leaderboard?.entries?.length ? (leaderboard.entries.reduce((acc: any, curr: any) => acc + curr.averageRawScore, 0) / leaderboard.entries.length).toFixed(1) : '0.0'}
                   </p>
                </div>
             </CardContent>
@@ -119,7 +119,7 @@ export function LeaderboardTab({ hackathon }: LeaderboardTabProps) {
             <div className="h-48 flex items-center justify-center italic text-muted-foreground">
               Calculating rankings...
             </div>
-          ) : !leaderboard?.items?.length ? (
+          ) : !leaderboard?.entries?.length ? (
             <div className="h-48 flex flex-col items-center justify-center gap-2 text-muted-foreground">
               <Trophy className="h-10 w-10 opacity-10" />
               <p>No projects evaluated yet.</p>
@@ -137,7 +137,7 @@ export function LeaderboardTab({ hackathon }: LeaderboardTabProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {leaderboard.items.map((row: any, i: number) => (
+                {leaderboard.entries.map((row: any, i: number) => (
                   <TableRow key={row.projectTitle} className={i < 3 ? "bg-primary/5 font-medium" : ""}>
                     <TableCell className="text-center font-bold">
                       {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
