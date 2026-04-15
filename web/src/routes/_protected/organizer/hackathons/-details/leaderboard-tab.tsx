@@ -43,11 +43,7 @@ export function LeaderboardTab({ hackathon }: LeaderboardTabProps) {
     refetchInterval: 30000, // Refetch every 30s
   });
 
-  const handleExport = (type: 'csv' | 'pdf') => {
-    const url = hackathonApi.getExportUrl(hackathon.id, type);
-    toast.info(`Starting ${type.toUpperCase()} export...`);
-    window.location.href = url;
-  };
+
 
   return (
     <div className="space-y-6">
@@ -102,15 +98,6 @@ export function LeaderboardTab({ hackathon }: LeaderboardTabProps) {
                </div>
             </CardContent>
          </Card>
-         
-         <div className="md:col-span-2 flex items-center gap-2">
-            <Button className="flex-1 gap-2 bg-blue-600 hover:bg-blue-700 h-full" onClick={() => handleExport('csv')}>
-               <TableIcon className="h-4 w-4" /> Export CSV
-            </Button>
-            <Button className="flex-1 gap-2 bg-red-600 hover:bg-red-700 h-full" onClick={() => handleExport('pdf')}>
-               <FileText className="h-4 w-4" /> Export Results & Certs (PDF)
-            </Button>
-         </div>
       </div>
 
       <Card className="border-primary/5 shadow-xl">

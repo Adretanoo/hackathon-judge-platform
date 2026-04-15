@@ -45,16 +45,16 @@ function AdminUsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between border-b pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between border-b pb-4 gap-4">
         <div>
           <h1 className="text-3xl font-black tracking-tight">System Users</h1>
           <p className="text-muted-foreground">Manage all users, their roles, and global platform access.</p>
         </div>
-        <div className="relative">
+        <div className="relative w-full md:w-auto">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Пошук за ім'ям або email..."
-            className="w-64 pl-9 rounded-xl"
+            className="w-full md:w-64 pl-9 rounded-xl"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -82,7 +82,7 @@ function AdminUsersPage() {
         ) : (
           <div className="divide-y divide-border/50">
             {users.map((user: any) => (
-              <div key={user.id} className="p-4 flex items-center justify-between hover:bg-muted/10 transition-colors">
+              <div key={user.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/10 transition-colors">
                  <div>
                     <h3 className="font-bold flex items-center gap-2">
                       {user.fullName || 'Без імені'}
@@ -90,13 +90,13 @@ function AdminUsersPage() {
                     </h3>
                     <p className="text-sm text-muted-foreground">{user.email}</p>
                  </div>
-                 <div className="flex items-center gap-4">
+                 <div className="flex items-center flex-wrap sm:flex-nowrap gap-4">
                     <Badge variant="outline" className="uppercase font-bold text-[10px] bg-primary/5 text-primary">
                       {user.roles?.find((r: any) => !r.hackathonId)?.role || 'PARTICIPANT'}
                     </Badge>
                     <div className="flex items-center gap-2">
                       <Button variant="ghost" size="sm" className="gap-2" onClick={() => setEditingUser(user)}>
-                         <Edit2 className="h-4 w-4" /> Edit
+                         <Edit2 className="h-4 w-4" /> <span className="hidden sm:inline">Edit</span>
                       </Button>
                       <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10" onClick={() => handleDelete(user.id)}>
                          <Trash2 className="h-4 w-4" />

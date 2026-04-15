@@ -75,7 +75,7 @@ function AdminJudgesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between border-b pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between border-b pb-5 gap-4">
         <div>
           <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
             <Shield className="w-7 h-7 text-primary" /> Judges &amp; Conflicts
@@ -97,7 +97,7 @@ function AdminJudgesPage() {
           onChange={(e) => setSelectedHackathonId(e.target.value)}
           className="h-10 rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-w-56"
         >
-          <option value="">Оберіть хакатон...</option>
+          <option value="">Оберіть захід...</option>
           {hackathons.map((h: any) => (
             <option key={h.id} value={h.id}>{h.title}</option>
           ))}
@@ -130,53 +130,57 @@ function AdminJudgesPage() {
       {!selectedHackathonId ? (
         <Card className="p-16 text-center text-muted-foreground flex flex-col items-center gap-3 border-dashed border-2">
           <Shield className="w-12 h-12 opacity-20" />
-          <p className="font-bold text-lg">Оберіть хакатон</p>
+          <p className="font-bold text-lg">Оберіть захід</p>
         </Card>
       ) : activeTab === 'judges' ? (
         /* ─── Judges Tab ─────────────────────────────────────────────────────── */
-        <Card className="overflow-hidden border-primary/10 shadow-sm">
-          <div className="grid grid-cols-[1fr_200px_120px] gap-4 px-5 py-3 bg-muted/50 text-xs font-bold uppercase tracking-widest text-muted-foreground border-b">
-            <span>Суддя</span>
-            <span>Трек</span>
-            <span className="text-right">Призначено</span>
+        <Card className="overflow-hidden border-primary/10 shadow-sm relative">
+          <div className="overflow-x-auto">
+            <div className="min-w-[600px]">
+              <div className="grid grid-cols-[1fr_200px_120px] gap-4 px-5 py-3 bg-muted/50 text-xs font-bold uppercase tracking-widest text-muted-foreground border-b">
+                <span>Суддя</span>
+                <span>Трек</span>
+                <span className="text-right">Призначено</span>
+              </div>
+              {judgesLoading ? (
+                <div className="divide-y">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="p-4 flex gap-4">
+                      <div className="h-5 w-40 bg-muted animate-pulse rounded" />
+                    </div>
+                  ))}
+                </div>
+              ) : judgesList.length === 0 ? (
+                <div className="p-12 text-center text-muted-foreground">
+                  <UserCheck className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                  <p className="font-bold">Суддів не призначено</p>
+                  <p className="text-sm mt-1">Перейдіть до панелі західу щоб призначити суддів.</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border/40">
+                  {judgesList.map((j: any) => (
+                    <div key={j.id} className="grid grid-cols-[1fr_200px_120px] gap-4 px-5 py-4 items-center hover:bg-muted/10">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-black text-sm flex items-center justify-center">
+                          {(j.judge?.fullName || '?')[0]}
+                        </div>
+                        <div>
+                          <p className="font-bold">{j.judge?.fullName || 'Невідомо'}</p>
+                          <p className="text-xs text-muted-foreground">{j.judge?.username}</p>
+                        </div>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {j.track?.name || <span className="italic">Всі треки</span>}
+                      </div>
+                      <div className="text-xs text-muted-foreground text-right">
+                        {j.createdAt ? new Date(j.createdAt).toLocaleDateString('uk-UA') : '—'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-          {judgesLoading ? (
-            <div className="divide-y">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="p-4 flex gap-4">
-                  <div className="h-5 w-40 bg-muted animate-pulse rounded" />
-                </div>
-              ))}
-            </div>
-          ) : judgesList.length === 0 ? (
-            <div className="p-12 text-center text-muted-foreground">
-              <UserCheck className="w-10 h-10 mx-auto mb-2 opacity-20" />
-              <p className="font-bold">Суддів не призначено</p>
-              <p className="text-sm mt-1">Перейдіть до панелі хакатону щоб призначити суддів.</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-border/40">
-              {judgesList.map((j: any) => (
-                <div key={j.id} className="grid grid-cols-[1fr_200px_120px] gap-4 px-5 py-4 items-center hover:bg-muted/10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-black text-sm flex items-center justify-center">
-                      {(j.judge?.fullName || '?')[0]}
-                    </div>
-                    <div>
-                      <p className="font-bold">{j.judge?.fullName || 'Невідомо'}</p>
-                      <p className="text-xs text-muted-foreground">{j.judge?.username}</p>
-                    </div>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {j.track?.name || <span className="italic">Всі треки</span>}
-                  </div>
-                  <div className="text-xs text-muted-foreground text-right">
-                    {j.createdAt ? new Date(j.createdAt).toLocaleDateString('uk-UA') : '—'}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </Card>
       ) : (
         /* ─── Conflicts Tab ──────────────────────────────────────────────────── */

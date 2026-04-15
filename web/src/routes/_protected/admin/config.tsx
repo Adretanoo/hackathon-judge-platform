@@ -70,7 +70,7 @@ function AdminConfigPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between border-b pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between border-b pb-4 gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">System Configuration</h1>
           <p className="text-muted-foreground">Global environment settings for the Hackathon platform.</p>

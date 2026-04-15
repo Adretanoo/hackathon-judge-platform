@@ -66,39 +66,12 @@ export function EditUserModal({ isOpen, onClose, user }: EditUserModalProps) {
 
       return data; // return submitted data for onSuccess
     },
-    onSuccess: (submittedData) => {
+    onSuccess: () => {
       toast.success('Профіль користувача успішно оновлено!');
-
-      // Optimistic cache update — immediately reflect new role in the table
-      // Note: the query stores an array directly (not { items: [...] })
-      queryClient.setQueriesData(
-        { queryKey: ['admin', 'users'] },
-        (oldData: any) => {
-          if (!Array.isArray(oldData)) return oldData;
-          return oldData.map((u: any) => {
-            if (u.id !== user.id) return u;
-            // Update or add the global role correctly
-            const updatedRoles = [...(u.roles || [])];
-            const globalRoleIndex = updatedRoles.findIndex(r => !r.hackathonId);
-            if (globalRoleIndex !== -1) {
-              updatedRoles[globalRoleIndex] = { ...updatedRoles[globalRoleIndex], role: submittedData.role };
-            } else {
-              updatedRoles.push({ role: submittedData.role });
-            }
-
-            return {
-              ...u,
-              fullName: submittedData.fullName || u.fullName,
-              isActive: submittedData.isActive,
-              isVerified: submittedData.isVerified,
-              roles: updatedRoles,
-            };
-          });
-        }
-      );
-
-      // Force immediate re-fetch from server
-      queryClient.refetchQueries({ queryKey: ['admin', 'users'] });
+      
+      // Invalidate all views of the users table (including searches)
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+      
       onClose();
     },
     onError: (err: any) => {

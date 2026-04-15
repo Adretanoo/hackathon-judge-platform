@@ -13,10 +13,10 @@ import { CriteriaModal } from '../modals/CriteriaModal';
 export function TracksTab({ hackathon }: { hackathon: Hackathon }) {
   const queryClient = useQueryClient();
   const [expandedTrackId, setExpandedTrackId] = useState<string | null>(null);
-  
+
   const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
   const [editingTrack, setEditingTrack] = useState<Track | null>(null);
-  
+
   const [isCriteriaModalOpen, setIsCriteriaModalOpen] = useState(false);
   const [activeTrackForCriteria, setActiveTrackForCriteria] = useState<string>('');
 
@@ -53,7 +53,7 @@ export function TracksTab({ hackathon }: { hackathon: Hackathon }) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Напрямки (Треки) та Критерії</h2>
-          <p className="text-sm text-muted-foreground">Керуйте викликами хакатону та тим, як судді їх оцінюють.</p>
+          <p className="text-sm text-muted-foreground">Керуйте викликами західу та тим, як судді їх оцінюють.</p>
         </div>
         <Button onClick={() => openTrackForm()} size="lg" className="gap-2 font-bold shadow-sm">
           <Plus className="h-5 w-5" /> Створити трек
@@ -62,9 +62,9 @@ export function TracksTab({ hackathon }: { hackathon: Hackathon }) {
 
       <div className="grid gap-4">
         {hackathon.tracks?.map((track) => (
-          <TrackItem 
-            key={track.id} 
-            track={track} 
+          <TrackItem
+            key={track.id}
+            track={track}
             isExpanded={expandedTrackId === track.id}
             onToggle={() => toggleTrack(track.id)}
             onEdit={() => openTrackForm(track)}
@@ -81,7 +81,7 @@ export function TracksTab({ hackathon }: { hackathon: Hackathon }) {
         )}
       </div>
 
-      <TrackModal 
+      <TrackModal
         isOpen={isTrackModalOpen}
         onClose={() => setIsTrackModalOpen(false)}
         hackathonId={hackathon.id}
@@ -113,7 +113,7 @@ function TrackItem({ track, isExpanded, onToggle, onEdit, onDelete, criteria, on
         </div>
         <div className="flex items-center gap-4">
           <Badge variant="secondary" className="gap-1 px-3 py-1 text-sm bg-primary/5 text-primary">
-             <Star className="h-4 w-4" /> {criteria.length} Критеріїв
+            <Star className="h-4 w-4" /> {criteria.length} Критеріїв
           </Badge>
           <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
             <Button variant="secondary" onClick={onEdit} className="gap-2">
@@ -124,7 +124,7 @@ function TrackItem({ track, isExpanded, onToggle, onEdit, onDelete, criteria, on
             </Button>
           </div>
           <div className="p-2">
-             {isExpanded ? <ChevronDown className="h-6 w-6 text-muted-foreground" /> : <ChevronRight className="h-6 w-6 text-muted-foreground" />}
+            {isExpanded ? <ChevronDown className="h-6 w-6 text-muted-foreground" /> : <ChevronRight className="h-6 w-6 text-muted-foreground" />}
           </div>
         </div>
       </div>
@@ -132,10 +132,10 @@ function TrackItem({ track, isExpanded, onToggle, onEdit, onDelete, criteria, on
       {isExpanded && (
         <div className="bg-muted/20 p-6 border-t space-y-4 animate-in slide-in-from-top-2 duration-300">
           <div className="flex items-center justify-between">
-             <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Формула оцінювання цього треку</h4>
-             <Button variant="outline" size="sm" onClick={onAddCriteria} className="gap-2 font-bold">
-                <Plus className="h-4 w-4" /> Додати критерій
-             </Button>
+            <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Формула оцінювання цього треку</h4>
+            <Button variant="outline" size="sm" onClick={onAddCriteria} className="gap-2 font-bold">
+              <Plus className="h-4 w-4" /> Додати критерій
+            </Button>
           </div>
 
           <div className="space-y-3">
@@ -143,20 +143,20 @@ function TrackItem({ track, isExpanded, onToggle, onEdit, onDelete, criteria, on
               <div key={c.id} className="flex items-center p-4 bg-background rounded-xl border border-primary/10 shadow-sm group">
                 <GripVertical className="h-5 w-5 text-muted-foreground mr-4 cursor-grab opacity-30 hover:opacity-100 transition-opacity" />
                 <div className="flex-1">
-                   <div className="flex items-center gap-3">
-                      <span className="font-bold text-base">{c.name}</span>
-                      <span className="text-xs font-bold uppercase tracking-wider text-primary border border-primary/20 px-2 py-0.5 rounded-full bg-primary/5">Вага x{c.weight}</span>
-                   </div>
-                   <p className="text-sm text-muted-foreground mt-1">{c.description}</p>
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-base">{c.name}</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-primary border border-primary/20 px-2 py-0.5 rounded-full bg-primary/5">Вага x{c.weight}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">{c.description}</p>
                 </div>
                 <div className="flex items-center gap-6">
-                   <div className="flex flex-col items-end">
-                      <span className="text-muted-foreground uppercase text-[10px] font-bold">Макс Балів</span>
-                      <span className="font-black text-xl">{c.maxScore}</span>
-                   </div>
-                   <Button variant="ghost" size="icon" className="h-10 w-10 opacity-0 group-hover:opacity-100 hover:bg-destructive/10">
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                   </Button>
+                  <div className="flex flex-col items-end">
+                    <span className="text-muted-foreground uppercase text-[10px] font-bold">Макс Балів</span>
+                    <span className="font-black text-xl">{c.maxScore}</span>
+                  </div>
+                  <Button variant="ghost" size="icon" className="h-10 w-10 opacity-0 group-hover:opacity-100 hover:bg-destructive/10">
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
                 </div>
               </div>
             ))}

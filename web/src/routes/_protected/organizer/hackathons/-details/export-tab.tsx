@@ -79,7 +79,7 @@ export function ExportTab({ hackathon }: ExportTabProps) {
           Звіти та Сертифікати
         </h2>
         <p className="text-sm text-muted-foreground">
-          Завантажте повний PDF-звіт з результатами хакатону, статистикою та сертифікатами переможців.
+          Завантажте повний PDF-звіт з результатами західу, статистикою та сертифікатами переможців.
         </p>
       </div>
 
@@ -88,7 +88,7 @@ export function ExportTab({ hackathon }: ExportTabProps) {
         <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40">
           <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
           <div className="space-y-1">
-            <p className="font-bold text-sm text-amber-700 dark:text-amber-400">Хакатон ще не завершено</p>
+            <p className="font-bold text-sm text-amber-700 dark:text-amber-400">захід ще не завершено</p>
             <p className="text-xs text-amber-600/80 dark:text-amber-500/80">
               Звіт можна завантажити у будь-який момент, але фінальні дані будуть повними тільки після завершення судійства і статусу <strong>COMPLETED</strong> або <strong>JUDGING</strong>.
             </p>
@@ -111,13 +111,13 @@ export function ExportTab({ hackathon }: ExportTabProps) {
             {/* Content */}
             <div className="flex-1 space-y-3">
               <div className="flex items-center gap-3 flex-wrap">
-                <h3 className="font-black text-xl">Повний PDF-звіт хакатону</h3>
+                <h3 className="font-black text-xl">Повний PDF-звіт західу</h3>
                 <Badge className="bg-primary/10 text-primary border-primary/20 font-bold text-xs uppercase tracking-wider">
                   PDF
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
-                Автоматично згенерований багатосторінковий PDF зі всією статистикою: загальна таблиця лідерів, 
+                Автоматично згенерований багатосторінковий PDF зі всією статистикою: загальна таблиця лідерів,
                 деталізовані оцінки по кожному критерію, та персональні сертифікати для топ-3 команд.
               </p>
               <ul className="grid grid-cols-2 gap-2 pt-1">
@@ -125,7 +125,7 @@ export function ExportTab({ hackathon }: ExportTabProps) {
                   'Повна таблиця рейтингу',
                   'Нормалізовані Z-score оцінки',
                   'Сертифікати для топ-3 команд',
-                  'Брендування хакатону',
+                  'Брендування західу',
                   'Деталізація по треках',
                   'Підпис організатора',
                 ].map((f) => (

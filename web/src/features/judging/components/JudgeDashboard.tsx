@@ -31,7 +31,7 @@ const STATUS_ICON = {
 export function JudgeDashboard() {
   const [selectedHackathonId, setSelectedHackathonId] = useState<string | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  
+
   const { isBlindJudging, toggleBlindJudging } = useJudgingStore();
 
   // 1. Load judge's hackathons
@@ -105,20 +105,20 @@ export function JudgeDashboard() {
 
           {hackathons.length > 1 && (
             <div className="flex items-center gap-2">
-            {hackathons.map(h => (
-              <button
-                key={h.id}
-                onClick={() => { setSelectedHackathonId(h.id); setSelectedProjectId(null); }}
-                className={cn(
-                  'px-3 py-1.5 rounded-xl text-sm font-bold transition-all',
-                  selectedHackathonId === h.id
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'bg-muted hover:bg-muted/80 text-muted-foreground'
-                )}
-              >
-                {h.title}
-              </button>
-            ))}
+              {hackathons.map(h => (
+                <button
+                  key={h.id}
+                  onClick={() => { setSelectedHackathonId(h.id); setSelectedProjectId(null); }}
+                  className={cn(
+                    'px-3 py-1.5 rounded-xl text-sm font-bold transition-all',
+                    selectedHackathonId === h.id
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                  )}
+                >
+                  {h.title}
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -195,7 +195,7 @@ export function JudgeDashboard() {
                   <p className="text-sm text-muted-foreground">
                     {selectedHackathonId
                       ? 'Немає поданих проєктів для оцінювання у вашому треку, або вам ще не призначено жодного треку.'
-                      : 'Виберіть хакатон вище.'}
+                      : 'Виберіть захід вище.'}
                   </p>
                 </div>
               )}

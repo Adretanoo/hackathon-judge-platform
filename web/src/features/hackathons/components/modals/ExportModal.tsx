@@ -62,7 +62,7 @@ export function ExportModal({ isOpen, onClose, hackathon }: ExportModalProps) {
     'Таблиця лідерів з нормалізованими Z-score оцінками',
     'Детальні бали по кожному критерію',
     'Сертифікати для топ-3 команд',
-    'Брендування хакатону та дата генерації',
+    'Брендування західу та дата генерації',
   ];
 
   return (
@@ -85,7 +85,7 @@ export function ExportModal({ isOpen, onClose, hackathon }: ExportModalProps) {
             <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40">
               <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
               <div className="space-y-1">
-                <p className="font-bold text-sm text-amber-700 dark:text-amber-400">Хакатон ще триває</p>
+                <p className="font-bold text-sm text-amber-700 dark:text-amber-400">захід ще триває</p>
                 <p className="text-xs text-amber-600/80 dark:text-amber-500/80">
                   Ви можете завантажити звіт зараз, але фінальні дані будуть повними тільки після завершення судійства.
                 </p>
@@ -102,7 +102,7 @@ export function ExportModal({ isOpen, onClose, hackathon }: ExportModalProps) {
               <div className="space-y-1">
                 <h3 className="font-black text-lg">Повний PDF-звіт</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Автоматично згенерований багатосторінковий документ з усіма результатами хакатону та сертифікатами переможців.
+                  Автоматично згенерований багатосторінковий документ з усіма результатами західу та сертифікатами переможців.
                 </p>
               </div>
             </div>

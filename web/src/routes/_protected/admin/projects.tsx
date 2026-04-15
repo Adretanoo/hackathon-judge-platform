@@ -132,7 +132,7 @@ function AdminProjectsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between border-b pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between border-b pb-5 gap-4">
         <div>
           <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
             <Rocket className="w-7 h-7 text-primary" /> Projects
@@ -171,8 +171,10 @@ function AdminProjectsPage() {
       </div>
 
       {/* Table */}
-      <Card className="overflow-hidden border-primary/10 shadow-sm">
-        <div className="grid grid-cols-[1fr_140px_120px_100px_80px] gap-4 px-5 py-3 bg-muted/50 text-xs font-bold uppercase tracking-widest text-muted-foreground border-b">
+      <Card className="overflow-hidden border-primary/10 shadow-sm relative">
+        <div className="overflow-x-auto">
+          <div className="min-w-[800px]">
+            <div className="grid grid-cols-[1fr_140px_120px_100px_80px] gap-4 px-5 py-3 bg-muted/50 text-xs font-bold uppercase tracking-widest text-muted-foreground border-b">
           <span>Проект / Команда</span>
           <span>Статус</span>
           <span>Середній бал</span>
@@ -249,9 +251,10 @@ function AdminProjectsPage() {
             ))}
           </div>
         )}
-
+          </div>
+        </div>
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-5 py-4 border-t bg-muted/20">
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between px-5 py-4 border-t bg-muted/20">
             <p className="text-sm text-muted-foreground">Сторінка {page} з {totalPages}</p>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Назад</Button>

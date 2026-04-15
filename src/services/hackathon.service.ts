@@ -60,13 +60,17 @@ export class HackathonService {
     return hackathon;
   }
 
-  async listHackathons(page: number = 1, limit: number = 20, showAll = false) {
+  async listHackathons(page: number = 1, limit: number = 20, showAll = false, search?: string) {
     const skip = (page - 1) * limit;
 
     // Public listing excludes DRAFT/ARCHIVED; admin passes showAll=true to see everything
     const filter: any = showAll ? {} : {
       status: { notIn: [HackathonStatus.DRAFT, HackathonStatus.ARCHIVED] }
     };
+
+    if (search) {
+      filter.title = { contains: search, mode: 'insensitive' };
+    }
 
     const [total, items] = await Promise.all([
       this.prisma.hackathon.count({ where: filter }),

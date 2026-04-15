@@ -26,7 +26,7 @@ export function ProgressTab({ status, hackathon }: ProgressTabProps) {
     {
       id: 'register',
       label: 'Реєстрація',
-      description: 'Ви зареєстровані на хакатон.',
+      description: 'Ви зареєстровані на захід.',
       done: !!status?.registered,
       icon: <CheckCircle2 className="h-5 w-5" />,
     },
@@ -124,9 +124,9 @@ export function ProgressTab({ status, hackathon }: ProgressTabProps) {
               <span className="font-black text-lg">{project.title}</span>
               <Badge className={cn('text-[10px]',
                 project.status === 'WINNER' ? 'bg-yellow-100 text-yellow-800' :
-                project.status === 'REVIEWED' ? 'bg-emerald-100 text-emerald-800' :
-                project.status === 'SUBMITTED' || project.status === 'UNDER_REVIEW' ? 'bg-blue-100 text-blue-800' :
-                'bg-muted text-muted-foreground'
+                  project.status === 'REVIEWED' ? 'bg-emerald-100 text-emerald-800' :
+                    project.status === 'SUBMITTED' || project.status === 'UNDER_REVIEW' ? 'bg-blue-100 text-blue-800' :
+                      'bg-muted text-muted-foreground'
               )}>
                 {project.status === 'WINNER' ? '🏆 Переможець' : project.status}
               </Badge>
@@ -169,7 +169,7 @@ export function ProgressTab({ status, hackathon }: ProgressTabProps) {
           <CardContent className="p-4 flex items-center gap-3">
             <Trophy className="h-8 w-8 text-yellow-500 shrink-0" />
             <div>
-              <p className="font-black text-sm">Хакатон завершено</p>
+              <p className="font-black text-sm">захід завершено</p>
               <p className="text-xs text-muted-foreground">Перевірте лідерборд для повних результатів.</p>
             </div>
           </CardContent>

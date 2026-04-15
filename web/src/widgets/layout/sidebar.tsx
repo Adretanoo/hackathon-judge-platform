@@ -1,14 +1,14 @@
 import { Link } from '@tanstack/react-router';
 import { useAuth } from '@/app/providers/auth-provider';
 import { cn } from '@/shared/lib/utils';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Rocket, 
-  Settings, 
-  Trophy, 
-  Shield, 
-  ClipboardCheck, 
+import {
+  LayoutDashboard,
+  Users,
+  Rocket,
+  Settings,
+  Trophy,
+  Shield,
+  ClipboardCheck,
   FileText,
   PlusCircle,
   BarChart3,
@@ -17,13 +17,13 @@ import {
   Globe
 } from 'lucide-react';
 
-interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
+interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> { }
 
 const navItems = {
   PARTICIPANT: [
-    { label: 'Dashboard',   icon: LayoutDashboard, href: '/dashboard' },
-    { label: 'Хакатони',   icon: Globe,            href: '/hackathons' },
-    { label: 'Мої Команди', icon: Users,            href: '/teams' },
+    { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
+    { label: 'західи', icon: Globe, href: '/hackathons' },
+    { label: 'Мої Команди', icon: Users, href: '/teams' },
   ],
   ORGANIZER: [
     { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
@@ -38,14 +38,14 @@ const navItems = {
     { label: 'Leaderboard', icon: BarChart3, href: '/leaderboard' },
   ],
   GLOBAL_ADMIN: [
-    { label: 'Dashboard',          icon: LayoutDashboard,  href: '/admin' },
-    { label: 'Hackathons',         icon: Trophy,            href: '/admin/hackathons' },
-    { label: 'Users',              icon: Users,             href: '/admin/users' },
-    { label: 'Teams',              icon: Users2,            href: '/admin/teams' },
-    { label: 'Projects',           icon: Rocket,            href: '/admin/projects' },
-    { label: 'Judges & Conflicts', icon: ShieldX,           href: '/admin/judges' },
-    { label: 'Leaderboard',        icon: BarChart3,         href: '/admin/leaderboard' },
-    { label: 'System Config',      icon: Settings,          href: '/admin/config' },
+    { label: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
+    { label: 'Hackathons', icon: Trophy, href: '/admin/hackathons' },
+    { label: 'Users', icon: Users, href: '/admin/users' },
+    { label: 'Teams', icon: Users2, href: '/admin/teams' },
+    { label: 'Projects', icon: Rocket, href: '/admin/projects' },
+    { label: 'Judges & Conflicts', icon: ShieldX, href: '/admin/judges' },
+    { label: 'Leaderboard', icon: BarChart3, href: '/admin/leaderboard' },
+    { label: 'System Config', icon: Settings, href: '/admin/config' },
   ],
   MENTOR: [
     { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },

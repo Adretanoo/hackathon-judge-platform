@@ -70,7 +70,7 @@ export function StagesTab({ hackathon }: { hackathon: Hackathon }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Етапи хакатону</h2>
+          <h2 className="text-2xl font-bold">Етапи західу</h2>
           <p className="text-sm text-muted-foreground">Налаштуйте часові фази змагання.</p>
         </div>
         <Button onClick={() => openForm()} size="lg" className="gap-2 font-bold shadow-sm">
@@ -82,9 +82,9 @@ export function StagesTab({ hackathon }: { hackathon: Hackathon }) {
         <div className="grid gap-4">
           <SortableContext items={hackathon.stages?.map(s => s.id) || []} strategy={verticalListSortingStrategy}>
             {hackathon.stages?.map((stage) => (
-              <SortableStageItem 
-                key={stage.id} 
-                stage={stage} 
+              <SortableStageItem
+                key={stage.id}
+                stage={stage}
                 onEdit={openForm}
                 onDelete={(id: string) => deleteMutation.mutate(id)}
               />
@@ -99,9 +99,9 @@ export function StagesTab({ hackathon }: { hackathon: Hackathon }) {
       </DndContext>
 
       {isModalOpen && (
-        <StageModal 
-          isOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)} 
+        <StageModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
           hackathonId={hackathon.id}
           stage={editingStage}
           nextOrderIndex={hackathon.stages?.length || 0}

@@ -25,7 +25,7 @@ interface ScoreSheetModalProps {
 export function ScoreSheetModal({ isOpen, onClose, projectId }: ScoreSheetModalProps) {
   const queryClient = useQueryClient();
   const { register, handleSubmit } = useForm();
-  
+
   // Stubbing project and criteria data
   const project = {
     id: projectId,
@@ -115,7 +115,7 @@ export function ScoreSheetModal({ isOpen, onClose, projectId }: ScoreSheetModalP
               {/* Scoring Column */}
               <div className="lg:col-span-2 space-y-6">
                 <h3 className="font-bold text-lg border-b pb-2">Виставлення балів</h3>
-                
+
                 <div className="space-y-6">
                   {criteria.map((c) => (
                     <div key={c.id} className="p-4 border rounded-xl bg-card space-y-4">
@@ -126,21 +126,21 @@ export function ScoreSheetModal({ isOpen, onClose, projectId }: ScoreSheetModalP
                         </div>
                         <Badge variant="outline" className="font-mono bg-muted/50">Max: {c.maxScore}</Badge>
                       </div>
-                      
+
                       <div className="flex items-center gap-4">
-                        <input 
-                          type="range" 
-                          min="0" 
-                          max={c.maxScore} 
-                          step="1" 
+                        <input
+                          type="range"
+                          min="0"
+                          max={c.maxScore}
+                          step="1"
                           className="flex-1 accent-primary"
-                          {...register(`scores.${c.id}`, { required: true, valueAsNumber: true })} 
+                          {...register(`scores.${c.id}`, { required: true, valueAsNumber: true })}
                         />
-                        <Input 
-                          type="number" 
+                        <Input
+                          type="number"
                           className="w-20 font-black text-center text-lg h-12"
-                          {...register(`scores.${c.id}`, { required: true, valueAsNumber: true })} 
-                          max={c.maxScore} 
+                          {...register(`scores.${c.id}`, { required: true, valueAsNumber: true })}
+                          max={c.maxScore}
                           min="0"
                         />
                       </div>
@@ -150,12 +150,12 @@ export function ScoreSheetModal({ isOpen, onClose, projectId }: ScoreSheetModalP
 
                 <div className="space-y-2 pt-4">
                   <Label className="font-bold text-base">Загальний коментар (Зворотний зв'язок)</Label>
-                  <Textarea 
-                    {...register('comment')} 
-                    placeholder="Напишіть ваші враження, слабкі та сильні сторони..." 
+                  <Textarea
+                    {...register('comment')}
+                    placeholder="Напишіть ваші враження, слабкі та сильні сторони..."
                     className="h-32 text-base resize-none"
                   />
-                  <p className="text-xs text-muted-foreground">Учасники побачать цей коментар після завершення хакатону.</p>
+                  <p className="text-xs text-muted-foreground">Учасники побачать цей коментар після завершення західу.</p>
                 </div>
               </div>
             </div>

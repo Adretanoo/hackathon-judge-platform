@@ -38,12 +38,12 @@ export const Route = createFileRoute('/_protected/hackathons/' as any)({
 // ─── Status helpers ──────────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
-  DRAFT:               { label: 'Draft',             className: 'bg-muted text-muted-foreground' },
-  REGISTRATION_OPEN:   { label: 'Registration Open', className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+  DRAFT: { label: 'Draft', className: 'bg-muted text-muted-foreground' },
+  REGISTRATION_OPEN: { label: 'Registration Open', className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
   REGISTRATION_CLOSED: { label: 'Registration Closed', className: 'bg-amber-100 text-amber-700' },
-  IN_PROGRESS:          { label: 'Hacking 🔥',        className: 'bg-primary/10 text-primary' },
-  JUDGING:             { label: 'Judging',            className: 'bg-cyan-100 text-cyan-700' },
-  COMPLETED:           { label: 'Finished',           className: 'bg-muted text-muted-foreground' },
+  IN_PROGRESS: { label: 'Hacking 🔥', className: 'bg-primary/10 text-primary' },
+  JUDGING: { label: 'Judging', className: 'bg-cyan-100 text-cyan-700' },
+  COMPLETED: { label: 'Finished', className: 'bg-muted text-muted-foreground' },
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -101,7 +101,7 @@ function HackathonsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-black tracking-tight">Хакатони</h1>
+          <h1 className="text-3xl font-black tracking-tight">західи</h1>
           <p className="text-muted-foreground mt-1">Реєструйтеся, знаходьте команду, перемагайте.</p>
         </div>
         <div className="flex items-center gap-2 bg-muted rounded-xl p-1">
@@ -125,7 +125,7 @@ function HackathonsPage() {
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Пошук хакатонів..."
+            placeholder="Пошук західів..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="pl-10 rounded-xl"
@@ -149,7 +149,7 @@ function HackathonsPage() {
             {exploreList.length === 0 && (
               <div className="col-span-3 py-20 text-center text-muted-foreground">
                 <Rocket className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                <p>Немає доступних хакатонів для реєстрації.</p>
+                <p>Немає доступних західів для реєстрації.</p>
               </div>
             )}
           </div>
@@ -164,11 +164,11 @@ function HackathonsPage() {
               <div className="col-span-3 py-20 text-center space-y-4">
                 <Trophy className="h-12 w-12 mx-auto opacity-20 text-muted-foreground" />
                 <div>
-                  <p className="font-bold">Ви ще не зареєстровані ні в одному хакатоні.</p>
+                  <p className="font-bold">Ви ще не зареєстровані ні в одному західі.</p>
                   <p className="text-sm text-muted-foreground mt-1">Перейдіть на вкладку «Дослідити» і зареєструйтеся.</p>
                 </div>
                 <Button onClick={() => setTab('explore')} className="gap-2 rounded-xl">
-                  Дослідити хакатони <ArrowRight className="h-4 w-4" />
+                  Дослідити західи <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
             )}

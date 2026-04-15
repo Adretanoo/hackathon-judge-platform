@@ -105,7 +105,7 @@ export function CreateHackathonModal({ isOpen, onClose, editHackathon }: CreateH
         : adminApi.createHackathon(payload);
     },
     onSuccess: () => {
-      toast.success(isEditing ? 'Хакатон оновлено!' : 'Хакатон успішно створено!');
+      toast.success(isEditing ? 'Захід оновлено!' : 'Захід успішно створено!');
       queryClient.invalidateQueries({ queryKey: ['admin', 'hackathons'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'stats'] });
       onClose();
@@ -127,12 +127,12 @@ export function CreateHackathonModal({ isOpen, onClose, editHackathon }: CreateH
           </div>
           <DialogTitle className="text-2xl font-black flex items-center gap-2 mt-2">
             <Trophy className="w-6 h-6 text-primary" />
-            {isEditing ? 'Редагувати хакатон' : 'Створити новий хакатон'}
+            {isEditing ? 'Редагувати захід' : 'Створити новий захід'}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground text-sm">
             {isEditing
-              ? 'Оновіть деталі хакатону. Натисніть «Зберегти зміни» коли завершите.'
-              : 'Заповніть форму для створення нового хакатону на платформі.'}
+              ? 'Оновіть деталі західу. Натисніть «Зберегти зміни» коли завершите.'
+              : 'Заповніть форму для створення нового західу на платформі.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -141,7 +141,7 @@ export function CreateHackathonModal({ isOpen, onClose, editHackathon }: CreateH
           <div className="space-y-4">
             <h3 className="font-bold text-sm uppercase tracking-widest text-muted-foreground">Основна інформація</h3>
             <div className="grid gap-2">
-              <Label>Назва хакатону *</Label>
+              <Label>Назва західу *</Label>
               <Input
                 {...register('title', { required: "Обов'язкове поле" })}
                 placeholder="Global AI Summit 2026"
@@ -157,7 +157,7 @@ export function CreateHackathonModal({ isOpen, onClose, editHackathon }: CreateH
               <Label>Опис</Label>
               <textarea
                 {...register('description')}
-                placeholder="Детальний опис та мета хакатону..."
+                placeholder="Детальний опис та мета західу..."
                 className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
               />
             </div>
@@ -207,7 +207,7 @@ export function CreateHackathonModal({ isOpen, onClose, editHackathon }: CreateH
             <div className="flex items-center justify-between p-4 bg-muted/40 rounded-xl">
               <div>
                 <h4 className="font-bold text-sm">Онлайн-формат</h4>
-                <p className="text-xs text-muted-foreground">Хакатон проводиться дистанційно</p>
+                <p className="text-xs text-muted-foreground">захід проводиться дистанційно</p>
               </div>
               <Controller
                 control={control}
@@ -235,7 +235,7 @@ export function CreateHackathonModal({ isOpen, onClose, editHackathon }: CreateH
             className="font-bold gap-2"
           >
             <Save className="w-4 h-4" />
-            {mutation.isPending ? 'Збереження...' : isEditing ? 'Зберегти зміни' : 'Створити хакатон'}
+            {mutation.isPending ? 'Збереження...' : isEditing ? 'Зберегти зміни' : 'Створити захід'}
           </Button>
         </DialogFooter>
       </DialogContent>

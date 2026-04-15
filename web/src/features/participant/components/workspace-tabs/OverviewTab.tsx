@@ -43,21 +43,21 @@ function distanceFromNow(d: string): string {
 // ─── Status config ────────────────────────────────────────────────────────────
 
 const STAGE_STATUS: Record<string, string> = {
-  DRAFT:               'bg-muted text-muted-foreground',
-  REGISTRATION_OPEN:   'bg-emerald-500 text-white',
+  DRAFT: 'bg-muted text-muted-foreground',
+  REGISTRATION_OPEN: 'bg-emerald-500 text-white',
   REGISTRATION_CLOSED: 'bg-amber-500 text-white',
-  IN_PROGRESS:          'bg-primary text-primary-foreground',
-  JUDGING:             'bg-cyan-500 text-white',
-  COMPLETED:           'bg-muted-foreground text-background',
+  IN_PROGRESS: 'bg-primary text-primary-foreground',
+  JUDGING: 'bg-cyan-500 text-white',
+  COMPLETED: 'bg-muted-foreground text-background',
 };
 
 const STAGE_LABELS: Record<string, string> = {
-  DRAFT:               'Чернетка',
-  REGISTRATION_OPEN:   '✅ Реєстрація відкрита',
+  DRAFT: 'Чернетка',
+  REGISTRATION_OPEN: '✅ Реєстрація відкрита',
   REGISTRATION_CLOSED: '🔒 Реєстрація закрита',
-  IN_PROGRESS:          '🔥 Хакінг іде',
-  JUDGING:             '⚖️ Оцінювання',
-  COMPLETED:           '🏆 Завершено',
+  IN_PROGRESS: '🔥 Хакінг іде',
+  JUDGING: '⚖️ Оцінювання',
+  COMPLETED: '🏆 Завершено',
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -67,25 +67,25 @@ export function OverviewTab({ hackathon, status }: OverviewTabProps) {
   const navigate = useNavigate();
 
   const start = hackathon.startDate ? new Date(hackathon.startDate) : null;
-  const end   = hackathon.endDate   ? new Date(hackathon.endDate)   : null;
+  const end = hackathon.endDate ? new Date(hackathon.endDate) : null;
 
   const leaveMutation = useMutation({
     mutationFn: () => participantApi.leave(hackathon.id),
     onSuccess: () => {
-      toast.success('Ви успішно скасували участь у хакатоні');
+      toast.success('Ви успішно скасували участь у західі');
       queryClient.invalidateQueries({ queryKey: ['participant'] });
       navigate({ to: '/hackathons' as any });
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.error?.message || 'Помилка при виході з хакатону');
+      toast.error(err.response?.data?.error?.message || 'Помилка при виході з західу');
     }
   });
 
   const stages = [
-    { label: 'Реєстрація',  date: hackathon.registrationDeadline, done: !['DRAFT', 'REGISTRATION_OPEN'].includes(hackathon.status), active: hackathon.status === 'REGISTRATION_OPEN' },
-    { label: 'Хакінг',      date: hackathon.startDate,            done: ['JUDGING', 'COMPLETED'].includes(hackathon.status),          active: hackathon.status === 'IN_PROGRESS' },
-    { label: 'Оцінювання',  date: null,                           done: hackathon.status === 'COMPLETED',                             active: hackathon.status === 'JUDGING' },
-    { label: 'Результати',  date: hackathon.endDate,              done: hackathon.status === 'COMPLETED',                             active: hackathon.status === 'COMPLETED' },
+    { label: 'Реєстрація', date: hackathon.registrationDeadline, done: !['DRAFT', 'REGISTRATION_OPEN'].includes(hackathon.status), active: hackathon.status === 'REGISTRATION_OPEN' },
+    { label: 'Хакінг', date: hackathon.startDate, done: ['JUDGING', 'COMPLETED'].includes(hackathon.status), active: hackathon.status === 'IN_PROGRESS' },
+    { label: 'Оцінювання', date: null, done: hackathon.status === 'COMPLETED', active: hackathon.status === 'JUDGING' },
+    { label: 'Результати', date: hackathon.endDate, done: hackathon.status === 'COMPLETED', active: hackathon.status === 'COMPLETED' },
   ];
 
   return (
@@ -105,7 +105,7 @@ export function OverviewTab({ hackathon, status }: OverviewTabProps) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { icon: <Calendar className="h-4 w-4" />, label: 'Початок', value: fmt(hackathon.startDate) },
-          { icon: <Calendar className="h-4 w-4" />, label: 'Кінець',  value: fmt(hackathon.endDate) },
+          { icon: <Calendar className="h-4 w-4" />, label: 'Кінець', value: fmt(hackathon.endDate) },
           { icon: hackathon.isOnline ? <Globe className="h-4 w-4" /> : <MapPin className="h-4 w-4" />, label: 'Формат', value: hackathon.isOnline ? 'Online' : 'Offline' },
           { icon: <Users className="h-4 w-4" />, label: 'Макс. учасників', value: hackathon.maxParticipants ?? '∞' },
         ].map((item, i) => (
@@ -123,7 +123,7 @@ export function OverviewTab({ hackathon, status }: OverviewTabProps) {
         <Card className="border">
           <CardContent className="p-5 space-y-2">
             <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-muted-foreground">
-              <Info className="h-3.5 w-3.5" /> Про хакатон
+              <Info className="h-3.5 w-3.5" /> Про захід
             </div>
             <p className="text-sm leading-relaxed">{hackathon.description}</p>
           </CardContent>
@@ -140,9 +140,9 @@ export function OverviewTab({ hackathon, status }: OverviewTabProps) {
               <div key={i} className="flex items-center gap-4">
                 <div className={cn(
                   'h-6 w-6 rounded-full border-2 flex items-center justify-center shrink-0 z-10 bg-background',
-                  s.active  ? 'border-primary bg-primary' :
-                  s.done    ? 'border-emerald-500 bg-emerald-500' :
-                  'border-border'
+                  s.active ? 'border-primary bg-primary' :
+                    s.done ? 'border-emerald-500 bg-emerald-500' :
+                      'border-border'
                 )}>
                   {s.active && <div className="h-2 w-2 rounded-full bg-white animate-pulse" />}
                   {s.done && !s.active && <ChevronRight className="h-3 w-3 text-white" />}
@@ -192,7 +192,7 @@ export function OverviewTab({ hackathon, status }: OverviewTabProps) {
                 </p>
               </div>
             </div>
-            
+
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" size="sm" className="rounded-xl gap-2 font-bold h-9 bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white border-0 shadow-none dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/50">
@@ -203,17 +203,17 @@ export function OverviewTab({ hackathon, status }: OverviewTabProps) {
                 <AlertDialogHeader>
                   <AlertDialogTitle className="font-black text-xl">Скасувати участь?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Ви впевнені, що хочете покинути цей хакатон? 
+                    Ви впевнені, що хочете покинути цей захід?
                     Якщо ви перебуваєте у команді, вас буде автоматично з неї виключено.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel className="rounded-xl">Скасувати</AlertDialogCancel>
-                  <AlertDialogAction 
+                  <AlertDialogAction
                     onClick={() => leaveMutation.mutate()}
                     className="rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold"
                   >
-                    {leaveMutation.isPending ? 'Вихід...' : 'Так, покинути хакатон'}
+                    {leaveMutation.isPending ? 'Вихід...' : 'Так, покинути захід'}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

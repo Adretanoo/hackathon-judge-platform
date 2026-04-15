@@ -94,14 +94,32 @@ export function EditHackathonModal({ isOpen, onClose, hackathon }: EditHackathon
   }, [isOpen, hackathon, reset]);
 
   const updateMutation = useMutation({
-    mutationFn: (data: any) => hackathonApi.update(hackathon.id, {
-      ...data,
-      startDate: data.startDate ? new Date(data.startDate).toISOString() : undefined,
-      endDate: data.endDate ? new Date(data.endDate).toISOString() : undefined,
-      registrationDeadline: data.registrationDeadline ? new Date(data.registrationDeadline).toISOString() : undefined,
-      minTeamSize: Number(data.minTeamSize),
-      maxTeamSize: Number(data.maxTeamSize),
-    }),
+    mutationFn: async (data: any) => {
+      const payload: any = {
+        ...data,
+        startDate: data.startDate ? new Date(data.startDate).toISOString() : undefined,
+        endDate: data.endDate ? new Date(data.endDate).toISOString() : undefined,
+        registrationDeadline: data.registrationDeadline ? new Date(data.registrationDeadline).toISOString() : undefined,
+        minTeamSize: Number(data.minTeamSize),
+        maxTeamSize: Number(data.maxTeamSize),
+      };
+
+      // Ensure empty strings don't crash backend URL or string validation
+      if (!payload.websiteUrl?.trim()) delete payload.websiteUrl;
+      if (!payload.subtitle?.trim()) delete payload.subtitle;
+      if (!payload.description?.trim()) delete payload.description;
+      if (!payload.location?.trim()) delete payload.location;
+      
+      // Update basic details through PUT
+      await hackathonApi.update(hackathon.id, payload);
+
+      // Explicitly update status if it changed
+      if (data.status && data.status !== hackathon.status) {
+        await hackathonApi.changeStatus(hackathon.id, data.status);
+      }
+      
+      return true;
+    },
     onSuccess: () => {
       toast.success('Hackathon updated!');
       queryClient.invalidateQueries({ queryKey: ['hackathon', hackathon.id] });

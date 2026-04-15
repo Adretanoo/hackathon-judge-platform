@@ -31,6 +31,12 @@ export default fp(async function jwtPlugin(app: FastifyInstance) {
     'authenticate',
     async (request: FastifyRequest, _reply: FastifyReply) => {
       try {
+        // Support token in query parameter for file downloads (CSV, PDF)
+        const qToken = (request.query as any)?.token;
+        if (!request.headers.authorization && qToken) {
+          request.headers.authorization = `Bearer ${qToken}`;
+        }
+        
         await request.jwtVerify<JwtPayload>();
       } catch {
         throw new UnauthorizedError('Invalid or expired access token');

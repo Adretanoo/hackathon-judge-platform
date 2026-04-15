@@ -57,7 +57,7 @@ function AdminTeamsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between border-b pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between border-b pb-5 gap-4">
         <div>
           <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
             <Users2 className="w-7 h-7 text-blue-500" /> Teams
@@ -74,7 +74,7 @@ function AdminTeamsPage() {
             onChange={(e) => setSelectedHackathonId(e.target.value)}
             className="w-full flex h-10 rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            <option value="">Оберіть хакатон...</option>
+            <option value="">Оберіть захід...</option>
             {hackathons.map((h: any) => (
               <option key={h.id} value={h.id}>{h.title}</option>
             ))}
@@ -96,7 +96,7 @@ function AdminTeamsPage() {
       {!selectedHackathonId ? (
         <Card className="p-16 text-center text-muted-foreground flex flex-col items-center gap-3 border-dashed border-2">
           <Users2 className="w-12 h-12 opacity-20" />
-          <p className="font-bold text-lg">Оберіть хакатон для перегляду команд</p>
+          <p className="font-bold text-lg">Оберіть захід для перегляду команд</p>
         </Card>
       ) : isLoading ? (
         <Card className="divide-y">
@@ -113,73 +113,77 @@ function AdminTeamsPage() {
           <p className="font-bold">Команд не знайдено</p>
         </Card>
       ) : (
-        <Card className="overflow-hidden border-primary/10 shadow-sm">
-          {/* Header */}
-          <div className="grid grid-cols-[28px_1fr_140px_80px_80px] gap-4 px-5 py-3 bg-muted/50 text-xs font-bold uppercase tracking-widest text-muted-foreground border-b">
-            <span />
-            <span>Команда</span>
-            <span>Статус</span>
-            <span>Учасн.</span>
-            <span className="text-right">Дії</span>
-          </div>
-
-          <div className="divide-y divide-border/40">
-            {filteredTeams.map((team: any) => (
-              <div key={team.id}>
-                {/* Row */}
-                <div className="grid grid-cols-[28px_1fr_140px_80px_80px] gap-4 px-5 py-4 items-center hover:bg-muted/10 transition-colors">
-                  <button
-                    onClick={() => setExpandedTeamId(expandedTeamId === team.id ? null : team.id)}
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    {expandedTeamId === team.id
-                      ? <ChevronDown className="w-4 h-4" />
-                      : <ChevronRight className="w-4 h-4" />
-                    }
-                  </button>
-
-                  <div>
-                    <p className="font-bold">{team.name}</p>
-                    {team.description && (
-                      <p className="text-xs text-muted-foreground truncate max-w-xs">{team.description}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <span className={cn('text-[10px] font-black uppercase px-2 py-1 rounded-full', TEAM_STATUS_COLOR[team.status] || 'bg-muted text-muted-foreground')}>
-                      {team.status}
-                    </span>
-                  </div>
-
-                  <div className="text-sm text-muted-foreground font-bold">
-                    {team.members?.length ?? team._count?.members ?? '?'}
-                  </div>
-
-                  <div className="flex justify-end">
-                    {team.status !== 'DISQUALIFIED' && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        title="Дискваліфікувати"
-                        className="text-destructive hover:bg-destructive/10"
-                        onClick={() => {
-                          if (window.confirm(`Дискваліфікувати команду «${team.name}»?`)) {
-                            disqualifyMutation.mutate(team.id);
-                          }
-                        }}
-                      >
-                        <ShieldOff className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Expanded Members */}
-                {expandedTeamId === team.id && (
-                  <TeamMembersRow teamId={team.id} />
-                )}
+        <Card className="overflow-hidden border-primary/10 shadow-sm relative">
+          <div className="overflow-x-auto">
+            <div className="min-w-[600px]">
+              {/* Header */}
+              <div className="grid grid-cols-[28px_1fr_140px_80px_80px] gap-4 px-5 py-3 bg-muted/50 text-xs font-bold uppercase tracking-widest text-muted-foreground border-b">
+                <span />
+                <span>Команда</span>
+                <span>Статус</span>
+                <span>Учасн.</span>
+                <span className="text-right">Дії</span>
               </div>
-            ))}
+
+              <div className="divide-y divide-border/40">
+                {filteredTeams.map((team: any) => (
+                  <div key={team.id}>
+                    {/* Row */}
+                    <div className="grid grid-cols-[28px_1fr_140px_80px_80px] gap-4 px-5 py-4 items-center hover:bg-muted/10 transition-colors">
+                      <button
+                        onClick={() => setExpandedTeamId(expandedTeamId === team.id ? null : team.id)}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        {expandedTeamId === team.id
+                          ? <ChevronDown className="w-4 h-4" />
+                          : <ChevronRight className="w-4 h-4" />
+                        }
+                      </button>
+
+                      <div>
+                        <p className="font-bold">{team.name}</p>
+                        {team.description && (
+                          <p className="text-xs text-muted-foreground truncate max-w-xs">{team.description}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <span className={cn('text-[10px] font-black uppercase px-2 py-1 rounded-full', TEAM_STATUS_COLOR[team.status] || 'bg-muted text-muted-foreground')}>
+                          {team.status}
+                        </span>
+                      </div>
+
+                      <div className="text-sm text-muted-foreground font-bold">
+                        {team.members?.length ?? team._count?.members ?? '?'}
+                      </div>
+
+                      <div className="flex justify-end">
+                        {team.status !== 'DISQUALIFIED' && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Дискваліфікувати"
+                            className="text-destructive hover:bg-destructive/10"
+                            onClick={() => {
+                              if (window.confirm(`Дискваліфікувати команду «${team.name}»?`)) {
+                                disqualifyMutation.mutate(team.id);
+                              }
+                            }}
+                          >
+                            <ShieldOff className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Expanded Members */}
+                    {expandedTeamId === team.id && (
+                      <TeamMembersRow teamId={team.id} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </Card>
       )}

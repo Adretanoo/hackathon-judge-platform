@@ -12,11 +12,11 @@ import { Link } from '@tanstack/react-router';
 import { useHackathonSocket } from '@/shared/hooks/useHackathonSocket';
 
 // Tab components
-import { OverviewTab }    from '@/features/participant/components/workspace-tabs/OverviewTab';
-import { MyTeamTab }      from '@/features/participant/components/workspace-tabs/MyTeamTab';
-import { FindTeamTab }    from '@/features/participant/components/workspace-tabs/FindTeamTab';
-import { ProjectTab }     from '@/features/participant/components/workspace-tabs/ProjectTab';
-import { ProgressTab }    from '@/features/participant/components/workspace-tabs/ProgressTab';
+import { OverviewTab } from '@/features/participant/components/workspace-tabs/OverviewTab';
+import { MyTeamTab } from '@/features/participant/components/workspace-tabs/MyTeamTab';
+import { FindTeamTab } from '@/features/participant/components/workspace-tabs/FindTeamTab';
+import { ProjectTab } from '@/features/participant/components/workspace-tabs/ProjectTab';
+import { ProgressTab } from '@/features/participant/components/workspace-tabs/ProgressTab';
 import { LeaderboardTab } from '@/features/participant/components/workspace-tabs/LeaderboardTab';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -32,12 +32,12 @@ interface TabDef {
 }
 
 const TABS: TabDef[] = [
-  { id: 'overview',     label: 'Огляд',             icon: <LayoutGrid className="h-4 w-4" /> },
-  { id: 'team',         label: 'Моя команда',        icon: <Users className="h-4 w-4" /> },
-  { id: 'find',         label: 'Знайти команду',     icon: <Search className="h-4 w-4" /> },
-  { id: 'project',      label: 'Проєкт',             icon: <FileText className="h-4 w-4" />, requiresTeam: true },
-  { id: 'progress',     label: 'Мій прогрес',        icon: <TrendingUp className="h-4 w-4" /> },
-  { id: 'leaderboard',  label: 'Лідерборд',          icon: <Trophy className="h-4 w-4" /> },
+  { id: 'overview', label: 'Огляд', icon: <LayoutGrid className="h-4 w-4" /> },
+  { id: 'team', label: 'Моя команда', icon: <Users className="h-4 w-4" /> },
+  { id: 'find', label: 'Знайти команду', icon: <Search className="h-4 w-4" /> },
+  { id: 'project', label: 'Проєкт', icon: <FileText className="h-4 w-4" />, requiresTeam: true },
+  { id: 'progress', label: 'Мій прогрес', icon: <TrendingUp className="h-4 w-4" /> },
+  { id: 'leaderboard', label: 'Лідерборд', icon: <Trophy className="h-4 w-4" /> },
 ];
 
 // ─── Main Component ──────────────────────────────────────────────────────────
@@ -70,8 +70,8 @@ export function ParticipantWorkspace({ hackathonId }: ParticipantWorkspaceProps)
   if (!hackathon) return (
     <div className="p-12 text-center text-muted-foreground">
       <Rocket className="h-12 w-12 mx-auto mb-3 opacity-20" />
-      <p>Хакатон не знайдено.</p>
-            <Link to={'/hackathons' as any} className="text-primary hover:underline mt-2 inline-block text-sm">← Повернутися до списку</Link>
+      <p>захід не знайдено.</p>
+      <Link to={'/hackathons' as any} className="text-primary hover:underline mt-2 inline-block text-sm">← Повернутися до списку</Link>
     </div>
   );
 
@@ -81,10 +81,10 @@ export function ParticipantWorkspace({ hackathonId }: ParticipantWorkspaceProps)
         <Rocket className="h-16 w-16 mb-4 opacity-20 text-primary" />
         <h2 className="text-2xl font-black text-foreground mb-2">Ви ще не зареєстровані</h2>
         <p className="mb-6 max-w-md mx-auto text-muted-foreground">
-          Щоб отримати доступ до робочого простору, створення команд і подання проєкту, необхідно зареєструватись на цей хакатон.
+          Щоб отримати доступ до робочого простору, створення команд і подання проєкту, необхідно зареєструватись на цей захід.
         </p>
         <Link to={'/hackathons' as any} className="text-sm font-bold bg-primary text-primary-foreground px-6 py-3 rounded-xl hover:opacity-90 transition-opacity">
-          ← Повернутись до списку хакатонів
+          ← Повернутись до списку західів
         </Link>
       </div>
     );

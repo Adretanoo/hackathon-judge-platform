@@ -53,12 +53,12 @@ function AdminHackathonsPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => adminApi.deleteHackathon(id),
     onSuccess: () => {
-      toast.success('Хакатон видалено.');
+      toast.success('захід видалено.');
       queryClient.invalidateQueries({ queryKey: ['admin', 'hackathons'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'stats'] });
     },
     onError: (err: any) =>
-      toast.error(err.response?.data?.error?.message || 'Не вдалося видалити хакатон'),
+      toast.error(err.response?.data?.error?.message || 'Не вдалося видалити захід'),
   });
 
   const statusMutation = useMutation({
@@ -74,7 +74,7 @@ function AdminHackathonsPage() {
 
   const handleDelete = (h: any) => {
     if (h.status !== 'DRAFT') {
-      toast.error('Видалити можна лише хакатони зі статусом DRAFT');
+      toast.error('Видалити можна лише західи зі статусом DRAFT');
       return;
     }
     if (window.confirm(`Видалити «${h.title}»? Цю дію не можна відмінити.`)) {
@@ -85,141 +85,145 @@ function AdminHackathonsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between border-b pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between border-b pb-5 gap-4">
         <div>
           <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
             <Trophy className="w-7 h-7 text-yellow-500" /> Hackathons
           </h1>
           <p className="text-muted-foreground mt-1">
-            Управління всіма хакатонами платформи. Всього: <strong>{total}</strong>
+            Управління всіма західами платформи. Всього: <strong>{total}</strong>
           </p>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)} className="font-bold gap-2 shadow-lg" size="lg">
-          <Plus className="w-5 h-5" /> Створити хакатон
+        <Button onClick={() => setIsCreateOpen(true)} className="font-bold gap-2 shadow-lg w-full md:w-auto" size="lg">
+          <Plus className="w-5 h-5" /> Створити захід
         </Button>
       </div>
 
       {/* Search */}
-      <div className="relative max-w-sm">
+      <div className="relative w-full md:max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
           placeholder="Пошук по назві..."
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="pl-9 rounded-xl"
+          className="pl-9 rounded-xl w-full"
         />
       </div>
 
       {/* Table */}
-      <Card className="overflow-hidden border-primary/10 shadow-sm">
-        {/* Table head */}
-        <div className="grid grid-cols-[1fr_140px_160px_120px_120px] gap-4 px-5 py-3 bg-muted/50 text-xs font-bold uppercase tracking-widest text-muted-foreground border-b">
-          <span>Назва</span>
-          <span>Статус</span>
-          <span>Дати</span>
-          <span>Команди</span>
-          <span className="text-right">Дії</span>
+      <Card className="overflow-hidden border-primary/10 shadow-sm relative">
+        <div className="overflow-x-auto">
+          <div className="min-w-[800px]">
+            {/* Table head */}
+            <div className="grid grid-cols-[1fr_140px_160px_120px_120px] gap-4 px-5 py-3 bg-muted/50 text-xs font-bold uppercase tracking-widest text-muted-foreground border-b">
+              <span>Назва</span>
+              <span>Статус</span>
+              <span>Дати</span>
+              <span>Команди</span>
+              <span className="text-right">Дії</span>
+            </div>
+
+            {isLoading ? (
+              <div className="divide-y">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="grid grid-cols-[1fr_140px_160px_120px_120px] gap-4 px-5 py-4 items-center">
+                    <div className="h-5 bg-muted/60 rounded-md animate-pulse w-48" />
+                    <div className="h-5 bg-muted/60 rounded-full animate-pulse w-20" />
+                    <div className="h-4 bg-muted/60 rounded-md animate-pulse w-32" />
+                    <div className="h-4 bg-muted/60 rounded-md animate-pulse w-10" />
+                    <div className="h-8 bg-muted/60 rounded-md animate-pulse ml-auto w-20" />
+                  </div>
+                ))}
+              </div>
+            ) : hackathons.length === 0 ? (
+              <div className="p-16 text-center text-muted-foreground flex flex-col items-center gap-3">
+                <Trophy className="w-12 h-12 opacity-20" />
+                <p className="font-bold text-lg">західів не знайдено</p>
+                <Button onClick={() => setIsCreateOpen(true)} variant="outline">Створити перший</Button>
+              </div>
+            ) : (
+              <div className="divide-y divide-border/40">
+                {hackathons.map((h: any) => (
+                  <div
+                    key={h.id}
+                    className="grid grid-cols-[1fr_140px_160px_120px_120px] gap-4 px-5 py-4 items-center hover:bg-muted/10 transition-colors"
+                  >
+                    {/* Title */}
+                    <div>
+                      <p className="font-bold leading-tight">{h.title}</p>
+                      {h.subtitle && (
+                        <p className="text-xs text-muted-foreground truncate max-w-xs">{h.subtitle}</p>
+                      )}
+                    </div>
+
+                    {/* Status dropdown */}
+                    <div>
+                      <select
+                        value={h.status}
+                        onChange={(e) => statusMutation.mutate({ id: h.id, status: e.target.value })}
+                        className={cn(
+                          'text-[10px] font-black uppercase px-2 py-1 rounded-full border cursor-pointer',
+                          'focus:outline-none focus:ring-1 focus:ring-primary',
+                          STATUS_COLOR[h.status] || 'bg-muted'
+                        )}
+                      >
+                        {STATUS_OPTIONS.map((s) => (
+                          <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Dates */}
+                    <div className="text-xs text-muted-foreground space-y-0.5">
+                      <p>🗓 {new Date(h.startDate).toLocaleDateString('uk-UA')}</p>
+                      <p>🏁 {new Date(h.endDate).toLocaleDateString('uk-UA')}</p>
+                    </div>
+
+                    {/* Teams count */}
+                    <div className="text-sm font-bold text-muted-foreground">
+                      {h._count?.teams ?? '—'} команд
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Панель управління"
+                        asChild
+                      >
+                        <Link to="/organizer/hackathons/$hackathonId" params={{ hackathonId: h.id }}>
+                          <Settings2 className="w-4 h-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Редагувати"
+                        onClick={() => { setEditingHackathon(h); setIsCreateOpen(true); }}
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Видалити (лише DRAFT)"
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDelete(h)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-
-        {isLoading ? (
-          <div className="divide-y">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="grid grid-cols-[1fr_140px_160px_120px_120px] gap-4 px-5 py-4 items-center">
-                <div className="h-5 bg-muted/60 rounded-md animate-pulse w-48" />
-                <div className="h-5 bg-muted/60 rounded-full animate-pulse w-20" />
-                <div className="h-4 bg-muted/60 rounded-md animate-pulse w-32" />
-                <div className="h-4 bg-muted/60 rounded-md animate-pulse w-10" />
-                <div className="h-8 bg-muted/60 rounded-md animate-pulse ml-auto w-20" />
-              </div>
-            ))}
-          </div>
-        ) : hackathons.length === 0 ? (
-          <div className="p-16 text-center text-muted-foreground flex flex-col items-center gap-3">
-            <Trophy className="w-12 h-12 opacity-20" />
-            <p className="font-bold text-lg">Хакатонів не знайдено</p>
-            <Button onClick={() => setIsCreateOpen(true)} variant="outline">Створити перший</Button>
-          </div>
-        ) : (
-          <div className="divide-y divide-border/40">
-            {hackathons.map((h: any) => (
-              <div
-                key={h.id}
-                className="grid grid-cols-[1fr_140px_160px_120px_120px] gap-4 px-5 py-4 items-center hover:bg-muted/10 transition-colors"
-              >
-                {/* Title */}
-                <div>
-                  <p className="font-bold leading-tight">{h.title}</p>
-                  {h.subtitle && (
-                    <p className="text-xs text-muted-foreground truncate max-w-xs">{h.subtitle}</p>
-                  )}
-                </div>
-
-                {/* Status dropdown */}
-                <div>
-                  <select
-                    value={h.status}
-                    onChange={(e) => statusMutation.mutate({ id: h.id, status: e.target.value })}
-                    className={cn(
-                      'text-[10px] font-black uppercase px-2 py-1 rounded-full border cursor-pointer',
-                      'focus:outline-none focus:ring-1 focus:ring-primary',
-                      STATUS_COLOR[h.status] || 'bg-muted'
-                    )}
-                  >
-                    {STATUS_OPTIONS.map((s) => (
-                      <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Dates */}
-                <div className="text-xs text-muted-foreground space-y-0.5">
-                  <p>🗓 {new Date(h.startDate).toLocaleDateString('uk-UA')}</p>
-                  <p>🏁 {new Date(h.endDate).toLocaleDateString('uk-UA')}</p>
-                </div>
-
-                {/* Teams count */}
-                <div className="text-sm font-bold text-muted-foreground">
-                  {h._count?.teams ?? '—'} команд
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center justify-end gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title="Панель управління"
-                    asChild
-                  >
-                    <Link to="/organizer/hackathons/$hackathonId" params={{ hackathonId: h.id }}>
-                      <Settings2 className="w-4 h-4" />
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title="Редагувати"
-                    onClick={() => { setEditingHackathon(h); setIsCreateOpen(true); }}
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title="Видалити (лише DRAFT)"
-                    className="text-destructive hover:bg-destructive/10"
-                    onClick={() => handleDelete(h)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-5 py-4 border-t bg-muted/20">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-5 py-4 border-t bg-muted/20">
             <p className="text-sm text-muted-foreground">
               Сторінка {page} з {totalPages} (всього {total})
             </p>

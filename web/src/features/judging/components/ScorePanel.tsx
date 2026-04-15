@@ -352,7 +352,7 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
                     disabled={project.hasConflict ?? false}
                   />
                   <p className="text-[10px] text-muted-foreground">
-                    Команда побачить цей коментар після завершення хакатону. · Ctrl+Enter = Підтвердити
+                    Команда побачить цей коментар після завершення західу. · Ctrl+Enter = Підтвердити
                   </p>
                 </div>
               </>
@@ -432,13 +432,13 @@ function CriterionRow({
 }) {
   let maxScore = Number(criterion.maxScore);
   if (isNaN(maxScore) || maxScore <= 0) maxScore = 10;
-  
+
   const percent = maxScore > 0 ? (value / maxScore) * 100 : 0;
 
   const colorClass =
     percent >= 80 ? 'text-emerald-600' :
-    percent >= 50 ? 'text-amber-600' :
-    'text-muted-foreground';
+      percent >= 50 ? 'text-amber-600' :
+        'text-muted-foreground';
 
   return (
     <div className={cn(
@@ -517,8 +517,8 @@ function CriterionRow({
           className={cn(
             'h-full rounded-full transition-all duration-200',
             percent >= 80 ? 'bg-emerald-500' :
-            percent >= 50 ? 'bg-amber-500' :
-            'bg-primary/50'
+              percent >= 50 ? 'bg-amber-500' :
+                'bg-primary/50'
           )}
           style={{ width: `${percent}%` }}
         />
