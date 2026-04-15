@@ -43,8 +43,9 @@ export interface ListProjectsParams {
 
 export const projectApi = {
   list: async (params: ListProjectsParams = {}) => {
-    const response = await api.get<{ data: { items: Project[]; total: number; page: number; limit: number } }>('/projects', { params });
-    return response.data.data;
+    const response = await api.get('/projects', { params });
+    const payload = response.data as any;
+    return Array.isArray(payload.data) ? { items: payload.data, ...(payload.meta || {}) } : payload.data;
   },
 
   getById: async (id: string) => {

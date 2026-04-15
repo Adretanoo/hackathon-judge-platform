@@ -194,7 +194,7 @@ export function JudgeDashboard() {
                   <Trophy className="h-10 w-10 mx-auto text-muted-foreground/30" />
                   <p className="text-sm text-muted-foreground">
                     {selectedHackathonId
-                      ? 'Вам не призначено жодного проєкту.'
+                      ? 'Немає поданих проєктів для оцінювання у вашому треку, або вам ще не призначено жодного треку.'
                       : 'Виберіть хакатон вище.'}
                   </p>
                 </div>

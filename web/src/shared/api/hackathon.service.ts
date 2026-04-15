@@ -75,7 +75,7 @@ export const hackathonApi = {
   // ─── Hackathons ─────────────────────────────────────────────────────────────
   list: async (params?: { page?: number; limit?: number }) => {
     const { data } = await authClient.get(API_BASE, { params });
-    return data.data; // { items, total, page, limit }
+    return Array.isArray(data.data) ? { items: data.data, ...(data.meta || {}) } : data.data;
   },
 
   getById: async (id: string) => {
@@ -193,7 +193,7 @@ export const hackathonApi = {
   // ─── Leaderboard ─────────────────────────────────────────────────────────────
   getLeaderboard: async (id: string, trackId?: string) => {
     const { data } = await authClient.get(`${API_BASE}/${id}/leaderboard`, { params: { trackId } });
-    return data.data;
+    return Array.isArray(data.data) ? { items: data.data, ...(data.meta || {}) } : data.data;
   },
 
   // ─── Export ──────────────────────────────────────────────────────────────────

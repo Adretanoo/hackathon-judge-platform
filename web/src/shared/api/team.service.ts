@@ -38,7 +38,7 @@ export const teamApi = {
   // ─── Hackathon Scoped ───────────────────────────────────────────────────────
   list: async (hackathonId: string, params?: { trackId?: string; page?: number; limit?: number }) => {
     const { data } = await authClient.get(`/hackathons/${hackathonId}/teams`, { params });
-    return data.data; // { items, total, page, limit }
+    return Array.isArray(data.data) ? { items: data.data, ...(data.meta || {}) } : data.data;
   },
 
   create: async (hackathonId: string, payload: { name: string; description?: string; trackId?: string; logoUrl?: string }) => {
@@ -48,7 +48,7 @@ export const teamApi = {
 
   listFreeAgents: async (hackathonId: string, params?: { skills?: string; page?: number; limit?: number }) => {
     const { data } = await authClient.get(`/hackathons/${hackathonId}/free-agents`, { params });
-    return data.data; // { items, total, page, limit }
+    return Array.isArray(data.data) ? { items: data.data, ...(data.meta || {}) } : data.data;
   },
 
   // ─── Team Specific ──────────────────────────────────────────────────────────

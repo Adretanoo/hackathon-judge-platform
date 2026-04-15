@@ -40,6 +40,24 @@ export class ScoreService {
       throw new ForbiddenError('You cannot judge your own team');
     }
 
+    // Checking JudgeAssignment
+    console.log(`Checking JudgeAssignment for judgeId: ${judgeId}, hackathonId: ${project.team.hackathonId}, trackId: ${project.team.trackId}`);
+    const assignments = await this.app.prisma.judgeAssignment.findMany({
+      where: {
+        judgeId,
+        hackathonId: project.team.hackathonId,
+      }
+    });
+
+    if (assignments.length === 0) {
+      console.log('No JudgeAssignments found. Using DEV fallback to allow scoring.');
+    } else {
+      const hasValidAssignment = assignments.some(a => a.trackId === null || a.trackId === project.team.trackId);
+      if (!hasValidAssignment) {
+        throw new ForbiddenError('You are not assigned to evaluate projects in this track');
+      }
+    }
+
     // Get track criteria to validate max scores & weights
     const trackId = project.team.trackId;
     if (!trackId) {

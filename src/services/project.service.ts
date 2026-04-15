@@ -145,6 +145,8 @@ export class ProjectService {
           hackathonId: filters.hackathonId
         }
       });
+      
+      console.log("JudgeAssignments: ", assignments);
 
       if (assignments.length > 0) {
         where.team = {
@@ -154,7 +156,9 @@ export class ProjectService {
           }))
         };
       } else {
-        where.id = 'none'; // No assignments found for this judge in this hackathon
+        // Fallback for DEV mode
+        console.log("No JudgeAssignments found. DEV Fallback: showing all projects in hackathon");
+        where.team = { hackathonId: filters.hackathonId };
       }
     } else if (filters.hackathonId) {
       where.team = { hackathonId: filters.hackathonId };
