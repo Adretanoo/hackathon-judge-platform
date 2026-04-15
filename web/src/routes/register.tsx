@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Navigate } from '@tanstack/react-router';
+import { createFileRoute, useNavigate, Navigate, Link } from '@tanstack/react-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RegisterPayloadSchema } from '@/shared/api/auth.service';
@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { authService } from '@/shared/api/auth.service';
 import { z } from 'zod';
 import { cn } from '@/shared/lib/utils';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 
 const registerSearchSchema = z.object({
@@ -78,12 +78,17 @@ function RegisterPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh] py-12">
-      <Card className="w-full max-w-lg shadow-2xl border-primary/10">
+    <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
+      <div className="w-full max-w-lg space-y-4">
+        <Link to="/" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-2">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Home
+        </Link>
+        <Card className="w-full shadow-lg border-primary/10">
         <CardHeader className="space-y-1">
           <CardTitle className="text-3xl font-bold tracking-tight text-center">Create Account</CardTitle>
           <CardDescription className="text-center">
-            Join the hackathon platform today
+            Join the automated evaluation platform today
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -187,6 +192,7 @@ function RegisterPage() {
           </CardFooter>
         </form>
       </Card>
+      </div>
     </div>
   );
 }

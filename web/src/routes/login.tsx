@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Navigate } from '@tanstack/react-router';
+import { createFileRoute, useNavigate, Navigate, Link } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoginPayloadSchema } from '@/shared/api/auth.service';
@@ -6,7 +6,7 @@ import { useAuth } from '@/app/providers/auth-provider';
 import { Button, Input, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, Label } from '@/shared/ui';
 import { cn } from '@/shared/lib/utils';
 import { toast } from 'sonner';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 
 import { z } from 'zod';
@@ -72,8 +72,13 @@ function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh]">
-      <Card className="w-full max-w-md shadow-2xl border-primary/10">
+    <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm space-y-4">
+        <Link to="/" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-2">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Home
+        </Link>
+        <Card className="w-full shadow-lg border-primary/10">
         <CardHeader className="space-y-1">
           <CardTitle className="text-3xl font-bold tracking-tight text-center">Login</CardTitle>
           <CardDescription className="text-center">
@@ -132,6 +137,7 @@ function LoginPage() {
           </CardFooter>
         </form>
       </Card>
+      </div>
     </div>
   );
 }
