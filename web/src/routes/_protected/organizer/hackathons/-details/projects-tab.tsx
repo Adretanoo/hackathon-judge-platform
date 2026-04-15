@@ -80,8 +80,8 @@ export function ProjectsTab({ hackathonId }: ProjectsTabProps) {
             <ProjectCard key={project.id} project={project} />
           ))
         ) : (
-          <div className="col-span-full py-20 flex flex-col items-center justify-center text-center opacity-60 border-2 border-dashed border-primary/10 rounded-2xl">
-             <Code2 className="h-12 w-12 text-muted-foreground/30 mb-4" />
+          <div className="col-span-full py-24 flex flex-col items-center justify-center text-center border-2 border-dashed border-primary/20 rounded-3xl bg-primary/[0.02] dark:bg-primary/[0.01]">
+             <Code2 className="h-20 w-20 text-primary/30 mb-6" />
              <h3 className="text-xl font-bold">No projects found</h3>
              <p className="text-sm">No submissions match the current filters or no projects submitted yet.</p>
           </div>

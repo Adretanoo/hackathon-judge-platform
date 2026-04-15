@@ -22,8 +22,9 @@ export async function changeProjectStatusHandler(req: FastifyRequest<{ Params: {
   const service = new ProjectService(req.server);
   const userId = (req.user as any)!.sub;
   
-  // Checking if the user has GLOBAL_ADMIN or ORGANIZER role in the token (simplified check)
-  const hasAdminAccess = (req.user as any)!.role === RoleName.GLOBAL_ADMIN || (req.user as any)!.role === RoleName.ORGANIZER;
+  // Checking if the user has GLOBAL_ADMIN or ORGANIZER role
+  const userRoles = await req.server.prisma.userRole.findMany({ where: { userId } });
+  const hasAdminAccess = userRoles.some(r => r.roleName === RoleName.GLOBAL_ADMIN || r.roleName === RoleName.ORGANIZER);
   
   const project = await service.changeStatus(req.params.id, userId, req.body.status, hasAdminAccess);
   return reply.status(200).send(successResponse(project));

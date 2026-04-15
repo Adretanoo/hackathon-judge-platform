@@ -87,7 +87,7 @@ export function TeamsTab({ hackathon }: TeamsTabProps) {
           ))
         ) : filteredTeams.length > 0 ? (
           filteredTeams.map((team: Team) => (
-            <Card key={team.id} className="group overflow-hidden border-primary/5 hover:border-primary/20 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+            <Card key={team.id} className="bg-gradient-to-br from-white to-primary/[0.03] dark:from-slate-900 dark:to-slate-800/80 border-0 ring-1 ring-primary/10 group overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1 hover:ring-primary/20">
               <CardContent className="p-0">
                 <div className="p-6 space-y-4">
                   <div className="flex items-start justify-between">
@@ -133,7 +133,7 @@ export function TeamsTab({ hackathon }: TeamsTabProps) {
                   variant="ghost" 
                   className="w-full rounded-none border-t border-primary/5 h-12 hover:bg-primary hover:text-white transition-all group-hover:justify-between px-6"
                 >
-                  <Link to={"/_protected/teams/$teamId" as any} params={{ teamId: team.id } as any}>
+                  <Link to={"/teams/$teamId" as any} params={{ teamId: team.id } as any}>
                     <span>Manage Team</span>
                     <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all" />
                   </Link>
@@ -142,8 +142,8 @@ export function TeamsTab({ hackathon }: TeamsTabProps) {
             </Card>
           ))
         ) : (
-          <div className="col-span-full py-20 flex flex-col items-center justify-center gap-4 border-2 border-dashed border-primary/10 rounded-2xl bg-muted/10 opacity-60">
-            <Users className="h-16 w-16 text-muted-foreground/30" />
+          <div className="col-span-full py-24 flex flex-col items-center justify-center gap-5 border-2 border-dashed border-primary/20 rounded-3xl bg-primary/[0.02] dark:bg-primary/[0.01]">
+            <Users className="h-20 w-20 text-primary/30" />
             <div className="text-center">
                <h3 className="text-xl font-bold">No teams found</h3>
                <p className="text-muted-foreground max-w-xs mx-auto">Try adjusting your filters or create a new team to get started.</p>

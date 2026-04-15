@@ -221,7 +221,7 @@ function TeamDetailPage() {
                          </div>
                       </div>
                       <Button variant="outline" asChild className="gap-2 border-primary/10 hover:bg-primary/5">
-                         <Link to={"/_protected/projects/$projectId" as any} params={{ projectId: project.id } as any}>
+                         <Link to={"/projects/$projectId" as any} params={{ projectId: project.id } as any}>
                             View Page <ChevronRight className="h-4 w-4" />
                          </Link>
                       </Button>
@@ -232,7 +232,7 @@ function TeamDetailPage() {
                    </p>
 
                    <div className="flex flex-wrap gap-2">
-                      {project.techStack.map(t => (
+                      {project.techStack.map((t: string) => (
                         <Badge key={t} variant="secondary" className="bg-muted text-muted-foreground border-none">
                           {t}
                         </Badge>

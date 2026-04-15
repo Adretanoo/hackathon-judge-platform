@@ -34,12 +34,12 @@ export const Route = createFileRoute('/_protected/projects/$projectId' as any)({
 });
 
 const statusColors: Record<string, string> = {
-  DRAFT: 'bg-muted text-muted-foreground border-muted-foreground/20',
-  SUBMITTED: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-  UNDER_REVIEW: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-  REVIEWED: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+  DRAFT: 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800/50 dark:text-slate-400 dark:border-slate-800',
+  SUBMITTED: 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/20 dark:border-blue-500/30',
+  UNDER_REVIEW: 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/20 dark:border-amber-500/30',
+  REVIEWED: 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:border-emerald-500/30',
   WINNER: 'bg-gradient-to-r from-yellow-400 to-amber-600 text-white border-none shadow-lg shadow-yellow-400/20',
-  ARCHIVED: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
+  ARCHIVED: 'bg-zinc-100 text-zinc-500 border-zinc-200 dark:bg-zinc-800/50 dark:text-zinc-400 dark:border-zinc-800',
 };
 
 function ProjectDetailPage() {
@@ -112,19 +112,19 @@ function ProjectDetailPage() {
             </div>
           </div>
 
-          <Card className="border-primary/5 shadow-2xl bg-white/50 overflow-hidden">
+          <Card className="border-0 shadow-2xl bg-white dark:bg-slate-900 overflow-hidden ring-1 ring-primary/10">
             <CardContent className="p-8 space-y-8">
                <div className="space-y-4">
-                  <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-primary/60 flex items-center gap-2">
+                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
                      <FileText className="h-4 w-4" /> Description
                   </h3>
-                  <div className="text-lg leading-relaxed text-muted-foreground whitespace-pre-wrap">
+                  <div className="text-lg leading-relaxed text-foreground font-medium whitespace-pre-wrap">
                     {project.description || 'No description provided.'}
                   </div>
                </div>
 
                <div className="space-y-4">
-                  <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-primary/60 flex items-center gap-2">
+                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
                      <Code2 className="h-4 w-4" /> Tech Stack
                   </h3>
                   <div className="flex flex-wrap gap-2">
@@ -203,10 +203,10 @@ function ProjectDetailPage() {
            </Card>
 
            {/* Admin Actions */}
-           <Card className="border-primary/5 bg-muted/30 shadow-inner">
+           <Card className="border-0 bg-gradient-to-br from-indigo-500 text-white shadow-2xl shadow-indigo-500/30 dark:from-indigo-600 dark:to-violet-700">
               <CardHeader>
-                 <CardTitle className="text-xs font-bold uppercase tracking-widest flex items-center gap-2 text-muted-foreground">
-                    <Settings className="h-3 w-3" /> Status Management
+                 <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-indigo-100">
+                    <Settings className="h-4 w-4 text-white" /> Status Management
                  </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -221,17 +221,16 @@ function ProjectDetailPage() {
                  )}
                  {project.status === 'SUBMITTED' && (
                    <Button 
-                    variant="outline"
-                    className="w-full rounded-xl border-primary/20 text-primary hover:bg-primary/5 gap-2"
+                    className="w-full rounded-xl bg-white text-indigo-600 hover:bg-white/90 hover:scale-[1.02] transition-all font-bold shadow-md shadow-black/10 gap-2"
                     onClick={() => statusMutation.mutate('UNDER_REVIEW')}
                     disabled={statusMutation.isPending}
                    >
-                     <CircleCheck className="h-4 w-4" /> Start Review
+                     <CircleCheck className="h-5 w-5" /> Start Review
                    </Button>
                  )}
-                 <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/10 flex items-start gap-3 mt-4">
-                    <Lock className="h-4 w-4 text-orange-600 mt-0.5" />
-                    <p className="text-[10px] text-orange-700 leading-tight">
+                 <div className="p-3 rounded-lg bg-black/10 flex items-start gap-3 mt-4 backdrop-blur-sm">
+                    <Lock className="h-4 w-4 text-indigo-100 mt-0.5" />
+                    <p className="text-[10px] text-indigo-50 leading-tight">
                        Only organizers and judges can perform status changes during the hackathon lifecycle.
                     </p>
                  </div>

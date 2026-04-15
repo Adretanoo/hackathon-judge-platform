@@ -34,7 +34,7 @@ const statusColors: Record<string, string> = {
 export function ProjectCard({ project, className }: ProjectCardProps) {
   return (
     <Card className={cn(
-      "group overflow-hidden border-primary/5 hover:border-primary/20 transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 bg-gradient-to-b from-white to-primary/[0.02]",
+      "bg-gradient-to-br from-white to-primary/[0.03] dark:from-slate-900 dark:to-slate-800/80 border-0 ring-1 ring-primary/10 group overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1 hover:ring-primary/20",
       className
     )}>
       <CardContent className="p-0">
@@ -110,7 +110,7 @@ export function ProjectCard({ project, className }: ProjectCardProps) {
           variant="ghost" 
           className="w-full rounded-none border-t border-primary/5 h-12 hover:bg-primary hover:text-white transition-all group-hover:px-8 group-hover:justify-between"
         >
-          <Link to={"/_protected/projects/$projectId" as any} params={{ projectId: project.id } as any}>
+          <Link to={"/projects/$projectId" as any} params={{ projectId: project.id } as any}>
             <span className="font-bold">View Details</span>
             <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all translate-x-[-10px] group-hover:translate-x-0" />
           </Link>
