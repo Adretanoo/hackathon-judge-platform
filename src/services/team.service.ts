@@ -367,7 +367,14 @@ export class TeamService {
     });
 
     if (!membership || membership.role !== TeamMemberRole.CAPTAIN) {
-      throw new ForbiddenError('Action requires team captain privileges');
+      // Check if organizer or admin
+      const team = await this.app.prisma.team.findUnique({ where: { id: teamId } });
+      const roles = await this.app.prisma.userRole.findMany({ where: { userId } });
+      const isOrganizer = roles.some(r => r.roleName === RoleName.GLOBAL_ADMIN || (r.roleName === RoleName.ORGANIZER && r.hackathonId === team?.hackathonId));
+      
+      if (!isOrganizer) {
+        throw new ForbiddenError('Action requires team captain privileges');
+      }
     }
   }
 }

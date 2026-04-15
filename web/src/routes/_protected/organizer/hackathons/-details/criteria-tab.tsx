@@ -76,8 +76,10 @@ export function CriteriaTab({ hackathon }: CriteriaTabProps) {
   const closeModal = () =>
     setModalState({ open: false, trackId: '', criterion: null });
 
-  const getCriteriaForTrack = (trackId: string): Criterion[] =>
-    (allCriteria as Criterion[]).filter((c) => c.trackId === trackId);
+  const getCriteriaForTrack = (trackId: string): Criterion[] => {
+    const arr = Array.isArray(allCriteria) ? allCriteria : ((allCriteria as any).items || []);
+    return arr.filter((c: Criterion) => c.trackId === trackId);
+  };
 
   const totalWeight = (criteria: Criterion[]) =>
     criteria.reduce((sum, c) => sum + Number(c.weight || 0), 0);

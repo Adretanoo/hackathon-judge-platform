@@ -124,8 +124,8 @@ export function OverviewTab({ hackathon }: OverviewTabProps) {
 
   const statsItems = [
     { label: 'Учасники', value: participants?.length ?? '—' },
-    { label: 'Команди', value: teams?.total ?? teams?.items?.length ?? '—' },
-    { label: 'Проєкти', value: projects?.total ?? projects?.items?.length ?? '—' },
+    { label: 'Команди', value: teams?.meta?.totalCount ?? teams?.meta?.total ?? teams?.items?.length ?? teams?.length ?? '—' },
+    { label: 'Проєкти', value: projects?.meta?.totalCount ?? projects?.meta?.total ?? projects?.items?.length ?? projects?.length ?? '—' },
     { label: 'Судді', value: (judges as any[])?.length ?? '—' },
   ];
 

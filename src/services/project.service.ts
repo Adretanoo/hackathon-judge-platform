@@ -15,7 +15,14 @@ export class ProjectService {
     });
 
     if (!membership) {
-      throw new ForbiddenError('You are not a member of this team');
+      // Check if organizer or admin
+      const team = await this.app.prisma.team.findUnique({ where: { id: teamId } });
+      const roles = await this.app.prisma.userRole.findMany({ where: { userId } });
+      const isOrganizer = roles.some(r => r.roleName === 'GLOBAL_ADMIN' || (r.roleName === 'ORGANIZER' && r.hackathonId === team?.hackathonId));
+      
+      if (!isOrganizer) {
+        throw new ForbiddenError('You are not a member of this team');
+      }
     }
   }
 

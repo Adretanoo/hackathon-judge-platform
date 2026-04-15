@@ -260,6 +260,9 @@ function TeamDetailPage() {
                    </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none bg-transparent shadow-none">
+                   <DialogHeader className="sr-only">
+                      <DialogTitle>Project Form</DialogTitle>
+                   </DialogHeader>
                    <div className="p-1">
                       <ProjectSubmissionForm 
                         teamId={teamId} 
