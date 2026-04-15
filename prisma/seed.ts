@@ -254,10 +254,10 @@ async function main() {
   // ─── 4. HACKATHON ──────────────────────────────────────────────────────────
 
   const now = new Date();
-  const reg_end = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
-  const hack_start = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
-  const hack_end = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-  const judge_end = new Date(now.getTime() + 9 * 24 * 60 * 60 * 1000);
+  const reg_end = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000);   // 10 days ago
+  const hack_start = new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000); // 8 days ago
+  const hack_end = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000);   // 6 days ago
+  const judge_end = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);  // 2 days from now
 
   let hackathon = await prisma.hackathon.findFirst({
     where: { title: 'AI for Good Hackathon 2026' },
@@ -272,7 +272,7 @@ async function main() {
         description: `Масштабний онлайн-хакатон для всіх, хто хоче змінити світ на краще за допомогою AI.
 Беріть участь у командах до 4 осіб, обирайте трек та вражайте суддів своїм рішенням за 48 годин!`,
         isOnline: true,
-        status: HackathonStatus.REGISTRATION_OPEN,
+        status: HackathonStatus.JUDGING,
         minTeamSize: 2,
         maxTeamSize: 4,
         registrationDeadline: reg_end,
@@ -280,6 +280,17 @@ async function main() {
         endDate: hack_end,
         bannerUrl: 'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=1200',
         websiteUrl: 'https://aiforgood.hack.io',
+      },
+    });
+  } else {
+    // Update status and dates when re-running seed
+    hackathon = await prisma.hackathon.update({
+      where: { id: hackathon.id },
+      data: {
+        status: HackathonStatus.JUDGING,
+        registrationDeadline: reg_end,
+        startDate: hack_start,
+        endDate: hack_end,
       },
     });
   }

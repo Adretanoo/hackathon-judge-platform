@@ -46,7 +46,7 @@ const STAGE_STATUS: Record<string, string> = {
   DRAFT:               'bg-muted text-muted-foreground',
   REGISTRATION_OPEN:   'bg-emerald-500 text-white',
   REGISTRATION_CLOSED: 'bg-amber-500 text-white',
-  ONGOING:             'bg-primary text-primary-foreground',
+  IN_PROGRESS:          'bg-primary text-primary-foreground',
   JUDGING:             'bg-cyan-500 text-white',
   COMPLETED:           'bg-muted-foreground text-background',
 };
@@ -55,7 +55,7 @@ const STAGE_LABELS: Record<string, string> = {
   DRAFT:               'Чернетка',
   REGISTRATION_OPEN:   '✅ Реєстрація відкрита',
   REGISTRATION_CLOSED: '🔒 Реєстрація закрита',
-  ONGOING:             '🔥 Хакінг іде',
+  IN_PROGRESS:          '🔥 Хакінг іде',
   JUDGING:             '⚖️ Оцінювання',
   COMPLETED:           '🏆 Завершено',
 };
@@ -83,7 +83,7 @@ export function OverviewTab({ hackathon, status }: OverviewTabProps) {
 
   const stages = [
     { label: 'Реєстрація',  date: hackathon.registrationDeadline, done: !['DRAFT', 'REGISTRATION_OPEN'].includes(hackathon.status), active: hackathon.status === 'REGISTRATION_OPEN' },
-    { label: 'Хакінг',      date: hackathon.startDate,            done: ['JUDGING', 'COMPLETED'].includes(hackathon.status),          active: hackathon.status === 'ONGOING' },
+    { label: 'Хакінг',      date: hackathon.startDate,            done: ['JUDGING', 'COMPLETED'].includes(hackathon.status),          active: hackathon.status === 'IN_PROGRESS' },
     { label: 'Оцінювання',  date: null,                           done: hackathon.status === 'COMPLETED',                             active: hackathon.status === 'JUDGING' },
     { label: 'Результати',  date: hackathon.endDate,              done: hackathon.status === 'COMPLETED',                             active: hackathon.status === 'COMPLETED' },
   ];

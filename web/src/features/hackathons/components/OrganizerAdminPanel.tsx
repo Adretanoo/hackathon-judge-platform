@@ -50,7 +50,7 @@ const STATUS_BADGE_VARIANT: Record<string, 'default' | 'secondary' | 'destructiv
   DRAFT: 'secondary',
   REGISTRATION_OPEN: 'default',
   REGISTRATION_CLOSED: 'outline',
-  ONGOING: 'default',
+  IN_PROGRESS: 'default',
   JUDGING: 'default',
   COMPLETED: 'secondary',
   ARCHIVED: 'outline',
@@ -130,38 +130,38 @@ export function OrganizerAdminPanel({ hackathonId }: OrganizerAdminPanelProps) {
       {/* ── Tabs ── */}
       <Tabs defaultValue="overview" className="space-y-8">
         <div className="overflow-x-auto pb-2 -mx-1 px-1">
-          <TabsList className="inline-flex min-w-max h-14 bg-muted/20 p-1.5 gap-2 rounded-2xl border">
-            <TabsTrigger value="overview" className="gap-2 px-5 rounded-xl font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+          <TabsList className="inline-flex min-w-max h-11 bg-muted/60 p-1 gap-0.5 rounded-xl border">
+            <TabsTrigger value="overview" className="gap-1.5 px-4 rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold">
               <BarChart3 className="h-4 w-4" /> Дашборд
             </TabsTrigger>
-            <TabsTrigger value="stages" className="gap-2 px-5 rounded-xl font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger value="stages" className="gap-1.5 px-4 rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold">
               <Calendar className="h-4 w-4" /> Етапи
             </TabsTrigger>
-            <TabsTrigger value="tracks" className="gap-2 px-5 rounded-xl font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger value="tracks" className="gap-1.5 px-4 rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold">
               <Layout className="h-4 w-4" /> Треки
             </TabsTrigger>
-            <TabsTrigger value="criteria" className="gap-2 px-5 rounded-xl font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger value="criteria" className="gap-1.5 px-4 rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold">
               <ClipboardList className="h-4 w-4" /> Критерії
             </TabsTrigger>
-            <TabsTrigger value="teams" className="gap-2 px-5 rounded-xl font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger value="teams" className="gap-1.5 px-4 rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold">
               <Users className="h-4 w-4" /> Команди
             </TabsTrigger>
-            <TabsTrigger value="participants" className="gap-2 px-5 rounded-xl font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger value="participants" className="gap-1.5 px-4 rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold">
               <UserSearch className="h-4 w-4" /> Учасники
             </TabsTrigger>
-            <TabsTrigger value="judges" className="gap-2 px-5 rounded-xl font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger value="judges" className="gap-1.5 px-4 rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold">
               <Gavel className="h-4 w-4" /> Судді
             </TabsTrigger>
-            <TabsTrigger value="conflicts" className="gap-2 px-5 rounded-xl font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              <ShieldAlert className="h-4 w-4 text-amber-500" /> Конфлікти
+            <TabsTrigger value="conflicts" className="gap-1.5 px-4 rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold">
+              <ShieldAlert className="h-4 w-4" /> Конфлікти
             </TabsTrigger>
-            <TabsTrigger value="projects" className="gap-2 px-5 rounded-xl font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger value="projects" className="gap-1.5 px-4 rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold">
               <Code2 className="h-4 w-4" /> Проєкти
             </TabsTrigger>
-            <TabsTrigger value="leaderboard" className="gap-2 px-5 rounded-xl font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger value="leaderboard" className="gap-1.5 px-4 rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold">
               <Trophy className="h-4 w-4" /> Рейтинг
             </TabsTrigger>
-            <TabsTrigger value="export" className="gap-2 px-5 rounded-xl font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger value="export" className="gap-1.5 px-4 rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold">
               <Download className="h-4 w-4" /> Експорт
             </TabsTrigger>
           </TabsList>

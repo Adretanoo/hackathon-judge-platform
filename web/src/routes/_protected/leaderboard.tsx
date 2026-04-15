@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { hackathonApi, type Track } from '@/shared/api/hackathon.service';
@@ -36,9 +36,11 @@ function LeaderboardPage() {
   });
 
   // Auto-select first hackathon
-  if (hackathonsPage && hackathonsPage.length > 0 && !selectedHackathonId) {
-    setSelectedHackathonId(hackathonsPage[0].id);
-  }
+  useEffect(() => {
+    if (hackathonsPage && hackathonsPage.length > 0 && !selectedHackathonId) {
+      setSelectedHackathonId(hackathonsPage[0].id);
+    }
+  }, [hackathonsPage, selectedHackathonId]);
 
   // --- Fetch hackathon detail for tracks ---
   const { data: hackathon } = useQuery({

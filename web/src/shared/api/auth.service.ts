@@ -23,13 +23,7 @@ const AuthResponseSchema = z.object({
 
 const MeResponseSchema = z.object({
   success: z.boolean(),
-  data: z.object({
-    sub: z.string(), // ID
-    email: z.string().email(),
-    role: z.enum(['GLOBAL_ADMIN', 'ORGANIZER', 'JUDGE', 'MENTOR', 'PARTICIPANT']),
-    // The backend /me returns a subset by default based on my earlier check, 
-    // but usually /me should return the full user profile or we fetch it separately.
-  }),
+  data: UserSchema,
 });
 
 // ─── Service ──────────────────────────────────────────────────────────────────
@@ -52,7 +46,7 @@ export const authService = {
   },
 
   getMe: async () => {
-    const { data } = await authClient.get('/auth/me');
+    const { data } = await authClient.get('/users/me');
     return MeResponseSchema.parse(data);
   },
 };

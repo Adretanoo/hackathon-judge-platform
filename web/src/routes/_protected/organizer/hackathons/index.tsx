@@ -34,8 +34,8 @@ function HackathonsListPage() {
         return <Badge variant="secondary">Draft</Badge>;
       case HackathonStatus.REGISTRATION_OPEN:
         return <Badge variant="success">Registration Open</Badge>;
-      case HackathonStatus.ONGOING:
-        return <Badge variant="default">Ongoing</Badge>;
+      case HackathonStatus.IN_PROGRESS:
+        return <Badge variant="default">In Progress</Badge>;
       case HackathonStatus.JUDGING:
         return <Badge variant="warning">Judging</Badge>;
       case HackathonStatus.COMPLETED:

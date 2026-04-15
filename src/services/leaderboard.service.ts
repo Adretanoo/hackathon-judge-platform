@@ -15,17 +15,25 @@ export class LeaderboardService {
       ? `leaderboard:hackathon:${hackathonId}:track:${trackId}`
       : `leaderboard:hackathon:${hackathonId}`;
 
-    // 1. Try to get from cache
-    const cached = await this.app.redis.get(cacheKey);
-    if (cached) {
-      return JSON.parse(cached);
+    // 1. Try to get from cache (Redis may be unavailable)
+    try {
+      const cached = await this.app.redis.get(cacheKey);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    } catch {
+      // Redis unavailable — compute fresh
     }
 
     // 2. Compute leaderboard
     const leaderboard = await this.computeLeaderboard(hackathonId, trackId);
 
-    // 3. Save to cache
-    await this.app.redis.setex(cacheKey, this.CACHE_TTL, JSON.stringify(leaderboard));
+    // 3. Save to cache (best-effort)
+    try {
+      await this.app.redis.setex(cacheKey, this.CACHE_TTL, JSON.stringify(leaderboard));
+    } catch {
+      // ignore cache write failures
+    }
 
     return leaderboard;
   }
@@ -40,14 +48,14 @@ export class LeaderboardService {
 
     if (!hackathon) throw new NotFoundError('Hackathon not found');
 
-    // Fetch projects and their scores
+    // Fetch projects and their scores — include ALL statuses so drafts show up too
     const projects = await this.app.prisma.project.findMany({
       where: {
         team: {
           hackathonId,
           ...(trackId && { trackId }),
         },
-        status: { in: ['SUBMITTED', 'UNDER_REVIEW', 'ACCEPTED'] },
+        status: { in: ['SUBMITTED', 'UNDER_REVIEW', 'ACCEPTED', 'DRAFT'] },
       },
       include: {
         team: true,
@@ -89,7 +97,7 @@ export class LeaderboardService {
       let normalizedTotal = 0;
 
       for (const s of proj.scores) {
-        const stats = judgeStats.get(s.judgeId)!;
+        const stats = judgeStats.get(s.judgeId) ?? { mean: 0, stdDev: 1 };
         const val = Number(s.scoreValue);
         const weight = Number(s.criteria.weight);
         

@@ -33,11 +33,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (meData) {
       const fullUser = {
-        id: meData.data.sub,
+        id: meData.data.id,
         email: meData.data.email,
         role: meData.data.role,
-        username: user?.username || '',
-        fullName: user?.fullName || '',
+        username: meData.data.username || user?.username || '',
+        fullName: meData.data.fullName || user?.fullName || '',
       };
       setUser(fullUser);
       localStorage.setItem('userData', JSON.stringify(fullUser));

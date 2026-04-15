@@ -15,7 +15,14 @@ export default fp(async (app) => {
     db: env.REDIS_DB,
   };
 
-  const redis = new Redis(redisConfig as any);
+  const options: any = {
+    maxRetriesPerRequest: null,
+    retryStrategy: () => null, // Disable completely if not available
+  };
+
+  const redis = typeof redisConfig === 'string' 
+    ? new Redis(redisConfig, options)
+    : new Redis({ ...redisConfig, ...options });
 
   redis.on('connect', () => {
     app.log.info('✅  Redis connected');
