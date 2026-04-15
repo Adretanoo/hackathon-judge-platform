@@ -88,7 +88,7 @@ function AdminHackathonsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between border-b pb-5 gap-4">
         <div>
           <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
-            <Trophy className="w-7 h-7 text-yellow-500" /> Hackathons
+            <Trophy className="w-7 h-7 text-yellow-500" /> Events
           </h1>
           <p className="text-muted-foreground mt-1">
             Управління всіма західами платформи. Всього: <strong>{total}</strong>

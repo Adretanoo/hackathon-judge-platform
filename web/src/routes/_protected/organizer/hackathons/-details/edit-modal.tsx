@@ -65,6 +65,7 @@ export function EditHackathonModal({ isOpen, onClose, hackathon }: EditHackathon
       location: hackathon.location ?? '',
       isOnline: hackathon.isOnline,
       websiteUrl: hackathon.websiteUrl ?? '',
+      bannerUrl: hackathon.bannerUrl ?? '',
       minTeamSize: hackathon.minTeamSize,
       maxTeamSize: hackathon.maxTeamSize,
     },
@@ -87,6 +88,7 @@ export function EditHackathonModal({ isOpen, onClose, hackathon }: EditHackathon
         location: hackathon.location ?? '',
         isOnline: hackathon.isOnline,
         websiteUrl: hackathon.websiteUrl ?? '',
+        bannerUrl: hackathon.bannerUrl ?? '',
         minTeamSize: hackathon.minTeamSize,
         maxTeamSize: hackathon.maxTeamSize,
       });
@@ -247,6 +249,9 @@ export function EditHackathonModal({ isOpen, onClose, hackathon }: EditHackathon
                   <Input {...register('location')} placeholder="City, venue, address..." />
                 </Field>
               )}
+              <Field label="Banner Image URL">
+                <Input {...register('bannerUrl')} type="url" placeholder="https://..." />
+              </Field>
               <Field label="Website URL">
                 <Input {...register('websiteUrl')} type="url" placeholder="https://..." />
               </Field>

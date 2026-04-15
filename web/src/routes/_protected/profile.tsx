@@ -64,8 +64,8 @@ function ProfilePage() {
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500 py-6">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-black tracking-tight">{t('profile.title')}</h1>
-          <p className="text-muted-foreground mt-1">{t('profile.subtitle')}</p>
+          <h1 className="text-3xl font-black tracking-tight">Мій Профіль</h1>
+          <p className="text-muted-foreground mt-1">Ваша особиста інформація та налаштування.</p>
         </div>
       </div>
 
@@ -89,12 +89,12 @@ function ProfilePage() {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md bg-background text-foreground border-border">
                    <DialogHeader>
-                     <DialogTitle>{t('profile.edit_desc')}</DialogTitle>
-                     <DialogDescription>{t('profile.avatar_update')}</DialogDescription>
+                     <DialogTitle>Зміна аватара</DialogTitle>
+                     <DialogDescription>Завантажте нове фото для свого профілю.</DialogDescription>
                    </DialogHeader>
                    <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl border-primary/20 bg-muted/30">
                      <Camera className="h-10 w-10 text-muted-foreground mb-4 opacity-50" />
-                     <Button variant="outline">{t('common.search')}</Button>
+                     <Button variant="outline">Обрати файл</Button>
                    </div>
                 </DialogContent>
               </Dialog>
@@ -103,7 +103,8 @@ function ProfilePage() {
             <div>
               <h2 className="text-xl font-bold">{currentProfile?.displayName || currentProfile?.fullName}</h2>
               <p className="text-sm text-muted-foreground font-medium flex items-center justify-center gap-1 mt-1">
-                <Shield className="h-4 w-4 text-primary" /> {currentProfile?.role?.replace('_', ' ')}
+                <Shield className="h-4 w-4 text-primary" /> 
+                {currentProfile?.role === 'GLOBAL_ADMIN' ? 'Головний адміністратор платформи' : currentProfile?.role?.replace('_', ' ')}
               </p>
             </div>
 
@@ -119,7 +120,7 @@ function ProfilePage() {
         {/* Right Column (Details) */}
         <Card className="col-span-1 md:col-span-2 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-bold">{t('profile.title')}</CardTitle>
+            <CardTitle className="text-lg font-bold">Деталі профілю</CardTitle>
             <Dialog open={isEditing} onOpenChange={setIsEditing}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2 rounded-xl" onClick={() => {
@@ -127,49 +128,49 @@ function ProfilePage() {
                   setBio(currentProfile?.bio || '');
                   setSkillsStr(currentProfile?.skills?.join(', ') || '');
                 }}>
-                  <Edit2 className="h-4 w-4" /> {t('profile.edit')}
+                  <Edit2 className="h-4 w-4" /> Редагувати
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[500px] bg-background text-foreground border-border rounded-xl">
                 <DialogHeader>
-                  <DialogTitle>{t('profile.edit')}</DialogTitle>
+                  <DialogTitle>Редагувати профіль</DialogTitle>
                   <DialogDescription className="text-muted-foreground">
-                    {t('profile.edit_desc')}
+                    Внесіть зміни у свій профіль та збережіть їх.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label>{t('profile.fields.name')}</Label>
+                    <Label>Ім'я та прізвище</Label>
                     <Input 
                       value={displayName} 
                       onChange={e => setDisplayName(e.target.value)} 
-                      placeholder={t('profile.placeholders.name')}
+                      placeholder="Введіть ваше ім'я"
                       className="bg-background text-foreground"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t('profile.fields.bio')}</Label>
+                    <Label>Про себе</Label>
                     <textarea 
                       value={bio} 
                       onChange={e => setBio(e.target.value)}
-                      placeholder={t('profile.placeholders.bio')}
+                      placeholder="Розкажіть трохи про себе..."
                       className="w-full min-h-[100px] rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t('profile.fields.skills')}</Label>
+                    <Label>Навички (через кому)</Label>
                     <Input 
                       value={skillsStr} 
                       onChange={e => setSkillsStr(e.target.value)} 
-                      placeholder={t('profile.placeholders.skills')}
+                      placeholder="React, Node.js, Design..."
                       className="bg-background text-foreground"
                     />
                   </div>
                 </div>
                 <div className="flex justify-end gap-2 mt-4">
-                  <Button variant="ghost" onClick={() => setIsEditing(false)}>{t('common.cancel')}</Button>
+                  <Button variant="ghost" onClick={() => setIsEditing(false)}>Скасувати</Button>
                   <Button onClick={handleSave} disabled={updateMutation.isPending}>
-                    {updateMutation.isPending ? t('common.loading') : t('common.save')}
+                    {updateMutation.isPending ? "Збереження..." : "Зберегти"}
                   </Button>
                 </div>
               </DialogContent>
@@ -178,7 +179,7 @@ function ProfilePage() {
           <CardContent className="space-y-6">
             
             <div className="space-y-2">
-              <h3 className="text-sm font-bold text-muted-foreground uppercase">{t('profile.fields.bio')}</h3>
+              <h3 className="text-sm font-bold text-muted-foreground uppercase">Про себе</h3>
               {currentProfile?.bio ? (
                 <p className="text-sm leading-relaxed">{currentProfile.bio}</p>
               ) : (
@@ -187,7 +188,7 @@ function ProfilePage() {
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-sm font-bold text-muted-foreground uppercase">{t('profile.fields.skills')}</h3>
+              <h3 className="text-sm font-bold text-muted-foreground uppercase">Навички</h3>
               <div className="flex flex-wrap gap-2">
                 {currentProfile?.skills && currentProfile.skills.length > 0 ? (
                   currentProfile.skills.map((s: string, i: number) => (
