@@ -58,9 +58,13 @@ export class AuthService {
       select: { id: true, username: true, fullName: true, email: true },
     });
 
-    // Optionally assign global role directly if we have seed roles, but skipping for brevity
-    // unless strictly needed. We will return it mockingly in authUser payload.
-    
+    // Create the global role in the database
+    await this.prisma.userRole.create({
+      data: {
+        userId: user.id,
+        roleName: userRole,
+      }
+    });
     const tokens = await this.generateAndStoreTokens(user.id, user.email, userRole, ipAddress, deviceInfo);
 
     return { ...tokens, user: { ...user, role: userRole } };

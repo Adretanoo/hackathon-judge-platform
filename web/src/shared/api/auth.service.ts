@@ -85,5 +85,5 @@ export const RegisterPayloadSchema = z.object({
     .regex(/.*[a-z].*/, 'Password must contain at least one lowercase letter')
     .regex(/.*[A-Z].*/, 'Password must contain at least one uppercase letter')
     .regex(/.*\d.*/, 'Password must contain at least one number'),
-  role: z.enum(['PARTICIPANT', 'ORGANIZER']).default('PARTICIPANT'),
+  role: z.enum(['PARTICIPANT', 'ORGANIZER', 'JUDGE']).default('PARTICIPANT'),
 });

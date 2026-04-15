@@ -164,6 +164,7 @@ function RegisterPage() {
                     <SelectContent>
                       <SelectItem value="PARTICIPANT">Participant</SelectItem>
                       <SelectItem value="ORGANIZER">Organizer</SelectItem>
+                      <SelectItem value="JUDGE">Judge</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
