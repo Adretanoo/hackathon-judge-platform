@@ -70,9 +70,7 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: { email: body.email },
       include: {
-        roles: {
-          where: { hackathonId: null }
-        }
+        roles: true
       }
     });
 
@@ -92,9 +90,15 @@ export class AuthService {
       // return { requires2fa: true };
     }
 
-    const primaryRole = user.roles.length > 0 ? user.roles[0]?.roleName : RoleName.PARTICIPANT;
+    const ROLE_RANK: Record<string, number> = { GLOBAL_ADMIN: 50, ORGANIZER: 40, JUDGE: 30, MENTOR: 20, PARTICIPANT: 10 };
+    let primaryRole: RoleName = RoleName.PARTICIPANT;
+    for (const r of user.roles) {
+      if ((ROLE_RANK[r.roleName] || 0) > ROLE_RANK[primaryRole]) {
+        primaryRole = r.roleName as RoleName;
+      }
+    }
 
-    const tokens = await this.generateAndStoreTokens(user.id, user.email, primaryRole as RoleName, ipAddress, deviceInfo);
+    const tokens = await this.generateAndStoreTokens(user.id, user.email, primaryRole, ipAddress, deviceInfo);
 
     return {
       ...tokens,
@@ -103,7 +107,7 @@ export class AuthService {
         username: user.username,
         fullName: user.fullName,
         email: user.email,
-        role: primaryRole as RoleName,
+        role: primaryRole,
       },
     };
   }
@@ -123,7 +127,7 @@ export class AuthService {
       where: { tokenHash },
       include: { user: {
         include: {
-          roles: { where: { hackathonId: null } }
+          roles: true
         }
       }}
     });
@@ -144,9 +148,15 @@ export class AuthService {
       data: { revokedAt: new Date() }
     });
 
-    const primaryRole = user.roles.length > 0 ? user.roles[0]?.roleName : RoleName.PARTICIPANT;
+    const ROLE_RANK: Record<string, number> = { GLOBAL_ADMIN: 50, ORGANIZER: 40, JUDGE: 30, MENTOR: 20, PARTICIPANT: 10 };
+    let primaryRole: RoleName = RoleName.PARTICIPANT;
+    for (const r of user.roles) {
+      if ((ROLE_RANK[r.roleName] || 0) > ROLE_RANK[primaryRole]) {
+        primaryRole = r.roleName as RoleName;
+      }
+    }
 
-    return await this.generateAndStoreTokens(user.id, user.email, primaryRole as RoleName, ipAddress, deviceInfo);
+    return await this.generateAndStoreTokens(user.id, user.email, primaryRole, ipAddress, deviceInfo);
   }
 
   async logout(refreshToken: string): Promise<void> {

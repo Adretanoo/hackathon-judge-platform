@@ -27,8 +27,10 @@ export function Navbar() {
 
   const handleLogout = () => {
     logout();
-    navigate({ to: '/login' });
+    navigate({ to: '/' });
   };
+
+  const homePath = user?.role === 'GLOBAL_ADMIN' ? '/admin' : '/dashboard';
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -103,13 +105,13 @@ export function Navbar() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate({ to: '/dashboard' })}>
+              <DropdownMenuItem onClick={() => navigate({ to: '/profile' })}>
                 <UserIcon className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate({ to: '/dashboard' })}>
+              <DropdownMenuItem onClick={() => navigate({ to: homePath as any })}>
                 <SettingsIcon className="mr-2 h-4 w-4" />
-                <span>Settings</span>
+                <span>Dashboard</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive">

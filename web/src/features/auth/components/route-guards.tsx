@@ -27,7 +27,9 @@ export function ProtectedRoute({ allowedRoles, children }: ProtectedRouteProps) 
   }
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/dashboard" replace />;
+    // Redirect to the user's own home base, not blindly to /dashboard
+    const home = user.role === 'GLOBAL_ADMIN' ? '/admin' : '/dashboard';
+    return <Navigate to={home} replace />;
   }
 
   return <>{children || <Outlet />}</>;

@@ -14,21 +14,23 @@ import {
   BarChart3,
   ShieldX,
   Users2,
-  Globe
+  Globe,
+  LogOut
 } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> { }
 
 const navItems = {
   PARTICIPANT: [
     { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-    { label: 'західи', icon: Globe, href: '/hackathons' },
+    { label: 'Events', icon: Globe, href: '/hackathons' },
     { label: 'Мої Команди', icon: Users, href: '/teams' },
   ],
   ORGANIZER: [
     { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-    { label: 'Manage Hackathons', icon: Trophy, href: '/organizer/hackathons' },
-    { label: 'Create Hackathon', icon: PlusCircle, href: '/organizer/hackathons/create' },
+    { label: 'Manage Events', icon: Trophy, href: '/organizer/hackathons' },
+    { label: 'Create Event', icon: PlusCircle, href: '/organizer/hackathons/create' },
     { label: 'Judge Management', icon: Shield, href: '/organizer/judges' },
     { label: 'Exports', icon: FileText, href: '/organizer/exports' },
   ],
@@ -39,7 +41,7 @@ const navItems = {
   ],
   GLOBAL_ADMIN: [
     { label: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
-    { label: 'Hackathons', icon: Trophy, href: '/admin/hackathons' },
+    { label: 'Events', icon: Trophy, href: '/admin/hackathons' },
     { label: 'Users', icon: Users, href: '/admin/users' },
     { label: 'Teams', icon: Users2, href: '/admin/teams' },
     { label: 'Projects', icon: Rocket, href: '/admin/projects' },
@@ -53,9 +55,15 @@ const navItems = {
 };
 
 export function Sidebar({ className }: SidebarProps) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const role = user?.role || 'PARTICIPANT';
   const roleItems = navItems[role as keyof typeof navItems] || navItems.PARTICIPANT;
+
+  const handleLogout = () => {
+    logout();
+    navigate({ to: '/' });
+  };
 
   return (
     <div className={cn("pb-12 h-full flex flex-col border-r bg-card", className)}>
@@ -94,6 +102,13 @@ export function Sidebar({ className }: SidebarProps) {
               <Settings className="h-4 w-4" />
               Settings
             </Link>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-destructive hover:bg-destructive/10 hover:text-destructive font-medium"
+            >
+              <LogOut className="h-4 w-4" />
+              Log Out
+            </button>
           </div>
         </div>
       </div>

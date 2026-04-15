@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Navigate } from '@tanstack/react-router';
 import { useAuth } from '@/app/providers/auth-provider';
 import { 
   Rocket, 
@@ -9,8 +9,7 @@ import {
   Award, 
   TrendingUp, 
   MessageSquare, 
-  Clock, 
-  Shield 
+  Clock
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/shared/ui';
 import { cn } from '@/shared/lib/utils';
@@ -23,14 +22,17 @@ function DashboardPage() {
   const { user } = useAuth();
   const role = user?.role || 'PARTICIPANT';
 
+  // Hard redirect: admins should always be in /admin, not /dashboard
+  if (role === 'GLOBAL_ADMIN') {
+    return <Navigate to="/admin" replace />;
+  }
+
   const renderRoleDashboard = () => {
     switch (role) {
       case 'ORGANIZER':
         return <OrganizerDashboard />;
       case 'JUDGE':
         return <JudgeDashboard />;
-      case 'GLOBAL_ADMIN':
-        return <AdminDashboard />;
       default:
         return <ParticipantDashboard />;
     }
@@ -191,19 +193,6 @@ function JudgeDashboard() {
   );
 }
 
-function AdminDashboard() {
-  return (
-     <Card className="border-primary/20 bg-primary/5">
-       <CardContent className="p-12 text-center flex flex-col items-center gap-4">
-          <Shield className="w-16 h-16 text-primary" />
-          <h2 className="text-2xl font-bold">Admin Control Center</h2>
-          <p className="max-w-md text-muted-foreground">
-            You have full access to platform metrics, logs, and user management. Use the sidebar to navigate to specific sections.
-          </p>
-       </CardContent>
-     </Card>
-  );
-}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

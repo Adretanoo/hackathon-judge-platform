@@ -1,12 +1,16 @@
 import { createLazyFileRoute, Link } from '@tanstack/react-router';
 import { Button } from '@/shared/ui/button';
 import { Rocket, Trophy, Users } from 'lucide-react';
+import { useAuth } from '@/app/providers/auth-provider';
 
 export const Route = createLazyFileRoute('/')({
   component: Index,
 });
 
 function Index() {
+  const { isAuthenticated, user } = useAuth();
+  const destPath = user?.role === 'GLOBAL_ADMIN' ? '/admin' : '/dashboard';
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       <div className="space-y-4 max-w-2xl">
@@ -36,17 +40,27 @@ function Index() {
         />
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 pt-8 w-full sm:w-auto px-4">
-        <Link to="/register" className="w-full sm:w-auto">
-          <Button size="lg" className="w-full sm:w-auto rounded-full px-8 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all font-bold text-lg h-14">
-            Get Started Now
-          </Button>
-        </Link>
-        <Link to="/login" className="w-full sm:w-auto">
-          <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-full px-8 font-bold text-lg h-14 border-2">
-            Sign In
-          </Button>
-        </Link>
+      <div className="flex flex-col sm:flex-row gap-4 pt-8 w-full sm:w-auto px-4 justify-center">
+        {isAuthenticated ? (
+          <Link to={destPath} className="w-full sm:w-auto">
+            <Button size="lg" className="w-full sm:w-auto rounded-full px-12 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all font-bold text-lg h-14">
+              Go to Dashboard
+            </Button>
+          </Link>
+        ) : (
+          <>
+            <Link to="/register" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto rounded-full px-8 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all font-bold text-lg h-14">
+                Get Started Now
+              </Button>
+            </Link>
+            <Link to="/login" className="w-full sm:w-auto">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-full px-8 font-bold text-lg h-14 border-2">
+                Sign In
+              </Button>
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );

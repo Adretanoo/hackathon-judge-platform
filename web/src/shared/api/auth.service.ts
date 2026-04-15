@@ -47,6 +47,24 @@ export const authService = {
 
   getMe: async () => {
     const { data } = await authClient.get('/users/me');
+    
+    // Backend formatUser returns roles as [{role, hackathonId, hackathonTitle}]
+    // Pick the highest-ranked role across all assignments
+    if (data.data && Array.isArray(data.data.roles)) {
+      const RANK: Record<string, number> = { GLOBAL_ADMIN: 50, ORGANIZER: 40, JUDGE: 30, MENTOR: 20, PARTICIPANT: 10 };
+      let highest = 'PARTICIPANT';
+      for (const r of data.data.roles) {
+        // Backend returns { role: 'GLOBAL_ADMIN', ... } (not roleName)
+        const roleName = r.roleName || r.role || '';
+        if ((RANK[roleName] || 0) > (RANK[highest] || 0)) {
+          highest = roleName;
+        }
+      }
+      data.data.role = highest;
+    } else if (data.data && !data.data.role) {
+      data.data.role = 'PARTICIPANT';
+    }
+
     return MeResponseSchema.parse(data);
   },
 };

@@ -7,8 +7,8 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (data: any) => Promise<void>;
-  register: (data: any) => Promise<void>;
+  login: (data: any) => Promise<any>;
+  register: (data: any) => Promise<any>;
   logout: () => void;
 }
 
@@ -16,20 +16,29 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
+
+  // Seed user from localStorage immediately so routes never see a null user on initial load
   const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('userData');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('userData');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
 
-  // Query to get current user info and verify token
-  const { data: meData, isLoading, error: meError } = useQuery({
+  // Track whether we are still verifying the token with the backend
+  const hasToken = !!localStorage.getItem('accessToken');
+
+  const { data: meData, isLoading: meIsLoading, error: meError } = useQuery({
     queryKey: ['auth', 'me'],
     queryFn: authService.getMe,
     retry: false,
-    enabled: !!localStorage.getItem('accessToken'),
+    enabled: hasToken,
+    staleTime: 5 * 60 * 1000, // 5 min – avoid re-fetching on every navigation
   });
 
-  // Side effect for sync user state (replacing onSuccess/onError in v5)
+  // Sync verified user from backend
   useEffect(() => {
     if (meData) {
       const fullUser = {
@@ -44,8 +53,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [meData]);
 
+  // Only logout on backend error if we actually had a token
   useEffect(() => {
-    if (meError) {
+    if (meError && hasToken) {
       logout();
     }
   }, [meError]);
@@ -67,8 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const registerMutation = useMutation({
     mutationFn: authService.register,
     onSuccess: () => {
-      // We don't necessarily log in automatically, or we could
-      toast.success('Registration successful! Please login.');
+      toast.success('Registration successful!');
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.error?.message || 'Registration failed');
@@ -76,31 +85,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   const logout = () => {
-    authService.logout().catch(() => {}); // Fire and forget
+    authService.logout().catch(() => {});
     setUser(null);
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userData');
     queryClient.clear();
     toast.message('You have been logged out');
   };
 
-  // Listen for unauthorized events from axios interceptor
   useEffect(() => {
     const handleUnauthorized = () => logout();
     window.addEventListener('auth:unauthorized', handleUnauthorized);
     return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
   }, []);
 
+  // isLoading is true only when we have a token AND are waiting for verification
+  // This prevents flickering on navigation between already-authenticated pages
+  const isLoading = hasToken && meIsLoading;
+
   return (
     <AuthContext.Provider
       value={{
         user,
         isAuthenticated: !!user,
-        isLoading: isLoading && !!localStorage.getItem('accessToken'),
-        login: async (data) => {
-          await loginMutation.mutateAsync(data);
-        },
-        register: async (data) => {
-          await registerMutation.mutateAsync(data);
-        },
+        isLoading,
+        login: (data) => loginMutation.mutateAsync(data),
+        register: (data) => registerMutation.mutateAsync(data),
         logout,
       }}
     >

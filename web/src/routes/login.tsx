@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, useNavigate, Navigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoginPayloadSchema } from '@/shared/api/auth.service';
@@ -23,8 +23,14 @@ export const Route = createFileRoute('/login')({
 function LoginPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
-  const { login } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+
+  // If already authenticated, redirect to appropriate panel
+  if (isAuthenticated && user) {
+    const dest = user.role === 'GLOBAL_ADMIN' ? '/admin' : '/dashboard';
+    return <Navigate to={dest} replace />;
+  }
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(LoginPayloadSchema),
@@ -32,11 +38,16 @@ function LoginPage() {
 
   const onSubmit = async (data: any) => {
     try {
-      await login(data);
+      const response = await login(data);
       if (search.redirect) {
         navigate({ to: search.redirect as any });
       } else {
-        navigate({ to: '/dashboard' });
+        const role = response.data.user.role;
+        if (role === 'GLOBAL_ADMIN') {
+          navigate({ to: '/admin' });
+        } else {
+          navigate({ to: '/dashboard' });
+        }
       }
     } catch (error: any) {
       const respData = error.response?.data;
