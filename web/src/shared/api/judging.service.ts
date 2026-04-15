@@ -94,4 +94,10 @@ export const judgingApi = {
     const { data } = await authClient.get('/judging/stats');
     return data.data ?? { totalAssigned: 0, totalScored: 0, pendingCount: 0 };
   },
+
+  /** Ask AI to evaluate a project */
+  autoEvaluateProject: async (projectId: string): Promise<{ scores: { criteriaId: string, scoreValue: number }[], generalComment: string }> => {
+    const { data } = await authClient.post(`/judging/projects/${projectId}/auto-eval`);
+    return data.data;
+  },
 };

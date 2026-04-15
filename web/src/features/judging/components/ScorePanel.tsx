@@ -30,13 +30,13 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
 
   // ─── Data Fetching ──────────────────────────────────────────────────────
 
-  const { data: criteria = [], isLoading: loadingCriteria } = useQuery({
+  const { data: criteria, isLoading: loadingCriteria } = useQuery({
     queryKey: ['project', project.id, 'criteria'],
     queryFn: () => judgingApi.getProjectCriteria(project.id),
     staleTime: 60_000,
   });
 
-  const { data: existingScores = [] } = useQuery({
+  const { data: existingScores } = useQuery({
     queryKey: ['project', project.id, 'my-scores'],
     queryFn: async () => {
       const { authClient } = await import('@/shared/api/auth-client');
@@ -59,11 +59,15 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
 
   // Pre-fill with existing scores or local draft
   useEffect(() => {
-    const localDraft = draftScores[project.id];
+    if (isDirty) return; // Prevent overwriting user's active input!
 
-    if (existingScores.length > 0) {
+    const localDraft = draftScores[project.id];
+    const safeCriteria = criteria || [];
+    const safeScores = existingScores || [];
+
+    if (safeScores.length > 0) {
       const map: ScoreMap = {};
-      existingScores.forEach((s: any) => {
+      safeScores.forEach((s: any) => {
         map[s.criteriaId] = s.scoreValue;
         if (s.comment) setComment(s.comment);
       });
@@ -77,22 +81,24 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
       setScores(map);
       setComment(localDraft.notes);
       setIsDirty(true);
-    } else if (criteria.length > 0) {
+    } else if (safeCriteria.length > 0) {
       // Default all to 0
       const defaults: ScoreMap = {};
-      criteria.forEach(c => { defaults[c.id] = 0; });
+      safeCriteria.forEach(c => { defaults[c.id] = 0; });
       setScores(defaults);
     }
-  }, [existingScores, criteria]);
+  }, [existingScores, criteria, project.id, isDirty]);
 
   // ─── Submit / Draft Mutations ────────────────────────────────────────────
 
-  const buildPayload = (): ScoreItem[] =>
-    criteria.map(c => ({
+  const buildPayload = (): ScoreItem[] => {
+    const safeCriteria = criteria || [];
+    return safeCriteria.map(c => ({
       criteriaId: c.id,
       scoreValue: scores[c.id] ?? 0,
       comment: comment || undefined,
     }));
+  };
 
   const submitMutation = useMutation({
     mutationFn: () => judgingApi.submitScores(project.id, buildPayload()),
@@ -115,7 +121,8 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
   // ─── Local Auto-save draft every 5s ─────────────────────────────────────
 
   useEffect(() => {
-    if (!isDirty || criteria.length === 0) return;
+    const safeCriteria = criteria || [];
+    if (!isDirty || safeCriteria.length === 0) return;
     const timer = setTimeout(() => {
       // Save to local Zustand store instead of backend
       const draftMap: Record<string, string> = {};
@@ -126,7 +133,7 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
       setLastSaved(new Date());
     }, 5000); // 5 sec debounce
     return () => clearTimeout(timer);
-  }, [isDirty, scores, comment, project.id, saveDraft, criteria.length]);
+  }, [isDirty, scores, comment, project.id, saveDraft, criteria?.length]);
 
   // ─── Score Update ────────────────────────────────────────────────────────
 
@@ -144,24 +151,53 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
     }
   };
 
+  // ─── Auto Evaluate (AI Copilot) ──────────────────────────────────────────
+
+  const aiMutation = useMutation({
+    mutationFn: () => judgingApi.autoEvaluateProject(project.id),
+    onSuccess: (data: any) => {
+      if (data && Array.isArray(data.scores)) {
+        const aiScores: ScoreMap = {};
+        data.scores.forEach((s: any) => {
+          aiScores[s.criteriaId] = s.scoreValue;
+        });
+        setScores(aiScores);
+        setComment(data.generalComment || 'Оцінено за допомогою ШІ.');
+        setIsDirty(true);
+        toast.success('🤖 AI Аналіз завершено', { description: 'Оцінки запропоновані. Не забудьте перевірити та підтвердити!' });
+      }
+    },
+    onError: (err: any) => {
+      toast.error('❌ Помилка AI', { description: err?.response?.data?.error?.message ?? 'Не вдалося виконати автоматичне оцінювання' });
+    }
+  });
+
+  const handleAutoEvaluate = () => {
+    aiMutation.mutate();
+  };
+
   // ─── Calculated total score (weighted) ───────────────────────────────────
 
-  const totalWeightedScore = criteria.reduce((sum, c) => {
+  const safeCriteria = criteria || [];
+
+  const totalWeightedScore = safeCriteria.reduce((sum, c) => {
     const raw = scores[c.id] ?? 0;
-    return sum + (raw / c.maxScore) * Number(c.weight) * 100;
+    let max = Number(c.maxScore);
+    if (isNaN(max) || max <= 0) max = 10;
+    return sum + (raw / max) * Number(c.weight) * 100;
   }, 0);
-  const totalWeight = criteria.reduce((sum, c) => sum + Number(c.weight), 0);
+  const totalWeight = safeCriteria.reduce((sum, c) => sum + Number(c.weight), 0);
   const normalizedScore = totalWeight > 0 ? (totalWeightedScore / (totalWeight * 100)) * 100 : 0;
 
   // ─── Render ──────────────────────────────────────────────────────────────
 
   return (
     <div
-      className="h-full flex flex-col overflow-hidden"
+      className="h-full flex flex-col overflow-hidden bg-muted/10"
       onKeyDown={handleKeyDown}
     >
       {/* ── Project Header ── */}
-      <div className="px-6 py-4 border-b bg-background flex items-start justify-between gap-4 shrink-0">
+      <div className={cn("px-6 py-4 border-b flex items-start justify-between gap-4 shrink-0 transition-colors", project.isScored && !isDirty ? "bg-muted/30" : "bg-background")}>
         <div className="space-y-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h2 className="text-xl font-black truncate">{project.title}</h2>
@@ -215,6 +251,19 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
         </div>
       )}
 
+      {/* ── Scored Notice ── */}
+      {project.isScored && !isDirty && (
+        <div className="mx-6 mt-4 p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 flex items-start gap-3 shrink-0 animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5 shrink-0" />
+          <div>
+            <p className="font-bold text-emerald-700 dark:text-emerald-500 text-sm">Проєкт вже успішно оцінено</p>
+            <p className="text-xs text-emerald-600/80 dark:text-emerald-400/80 mt-0.5">
+              Ваші попередні бали автоматично завантажено. Ви переглядаєте їх. Щоб відредагувати, просто змініть значення і натисніть «Зберегти зміни».
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ── Scrollable Content ── */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-6 grid grid-cols-1 xl:grid-cols-5 gap-6">
@@ -229,7 +278,7 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
             )}
 
             {/* Score Preview */}
-            {criteria.length > 0 && (
+            {safeCriteria.length > 0 && (
               <div className="p-4 rounded-xl border bg-card">
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">Поточний бал</p>
                 <div className="flex items-end gap-1">
@@ -264,7 +313,7 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
           <div className="xl:col-span-3 space-y-4">
             {loadingCriteria ? (
               <CriteriaSkeleton />
-            ) : criteria.length === 0 ? (
+            ) : safeCriteria.length === 0 ? (
               <div className="p-8 text-center rounded-xl border-2 border-dashed space-y-2">
                 <AlertCircle className="h-8 w-8 mx-auto text-muted-foreground/40" />
                 <p className="text-sm text-muted-foreground">Критеріїв не знайдено для цього треку.</p>
@@ -273,10 +322,10 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
             ) : (
               <>
                 <h3 className="font-black text-sm uppercase tracking-widest text-muted-foreground">
-                  Критерії оцінювання ({criteria.length})
+                  Критерії оцінювання ({safeCriteria.length})
                 </h3>
                 <div className="space-y-3">
-                  {criteria.map((criterion, index) => (
+                  {safeCriteria.map((criterion, index) => (
                     <CriterionRow
                       key={criterion.id}
                       criterion={criterion}
@@ -299,7 +348,7 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
                     onChange={e => { setComment(e.target.value); setIsDirty(true); }}
                     placeholder="Напишіть ваші враження, сильні та слабкі сторони проєкту..."
                     className="h-28 resize-none text-sm rounded-xl"
-                    tabIndex={criteria.length + 1}
+                    tabIndex={safeCriteria.length + 1}
                     disabled={project.hasConflict ?? false}
                   />
                   <p className="text-[10px] text-muted-foreground">
@@ -317,9 +366,21 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
         <div className="flex items-center gap-2">
           {/* Draft button removed since it auto-saves locally */}
           {lastSaved && (
-            <span className="text-[10px] bg-muted px-2 py-1 rounded-md text-muted-foreground">
+            <span className="text-[10px] bg-muted px-2 py-1 rounded-md text-muted-foreground mr-2">
               Чернетку {lastSaved.toLocaleTimeString()}
             </span>
+          )}
+          {!project.hasConflict && safeCriteria.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 rounded-xl text-indigo-500 border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 dark:border-indigo-900 dark:hover:bg-indigo-900/40"
+              onClick={handleAutoEvaluate}
+              disabled={aiMutation.isPending}
+            >
+              {aiMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : '🤖'}
+              {aiMutation.isPending ? 'Аналіз...' : 'ШІ Оцінка'}
+            </Button>
           )}
         </div>
 
@@ -337,14 +398,15 @@ export function ScorePanel({ project, hackathonId, onNext, nextLabel }: ScorePan
 
           <Button
             size="default"
-            className="gap-2 font-bold rounded-xl px-6 shadow-sm"
+            variant={project.isScored && !isDirty ? 'secondary' : 'default'}
+            className={cn("gap-2 font-bold rounded-xl px-6 shadow-sm transition-all", project.isScored && isDirty && "bg-amber-500 hover:bg-amber-600 text-white")}
             onClick={() => submitMutation.mutate()}
-            disabled={submitMutation.isPending || project.hasConflict || criteria.length === 0}
+            disabled={submitMutation.isPending || project.hasConflict || safeCriteria.length === 0}
           >
             {submitMutation.isPending ? (
-              <><Loader2 className="h-4 w-4 animate-spin" /> Збереження...</>
+              <><Loader2 className="h-4 w-4 animate-spin" /> {project.isScored ? 'Оновлення...' : 'Збереження...'}</>
             ) : (
-              <><Send className="h-4 w-4" /> Підтвердити оцінку</>
+              <><Send className="h-4 w-4" /> {project.isScored ? (isDirty ? '💾 Зберегти нові зміни' : 'Редагувати оцінку') : 'Підтвердити оцінку'}</>
             )}
           </Button>
         </div>
@@ -368,7 +430,10 @@ function CriterionRow({
   tabIndex: number;
   disabled: boolean;
 }) {
-  const percent = criterion.maxScore > 0 ? (value / criterion.maxScore) * 100 : 0;
+  let maxScore = Number(criterion.maxScore);
+  if (isNaN(maxScore) || maxScore <= 0) maxScore = 10;
+  
+  const percent = maxScore > 0 ? (value / maxScore) * 100 : 0;
 
   const colorClass =
     percent >= 80 ? 'text-emerald-600' :
@@ -393,7 +458,7 @@ function CriterionRow({
             Вага ×{criterion.weight}
           </Badge>
           <Badge variant="outline" className="text-[9px] font-bold text-muted-foreground">
-            Макс {criterion.maxScore}
+            Макс {maxScore}
           </Badge>
         </div>
       </div>
@@ -403,7 +468,7 @@ function CriterionRow({
         <input
           type="range"
           min={0}
-          max={criterion.maxScore}
+          max={maxScore}
           step={1}
           value={value}
           onChange={e => onChange(Number(e.target.value))}
@@ -416,11 +481,20 @@ function CriterionRow({
         <input
           type="number"
           min={0}
-          max={criterion.maxScore}
+          max={maxScore}
           value={value}
           onChange={e => {
-            const v = Math.max(0, Math.min(criterion.maxScore, Number(e.target.value)));
-            onChange(isNaN(v) ? 0 : v);
+            const rawValue = e.target.value;
+            // Prevent clearing from defaulting immediately, allow empty string logic by local state, 
+            // but for slider we require number. If empty, assume 0.
+            if (rawValue === '') {
+              onChange(0);
+              return;
+            }
+            let v = Number(rawValue);
+            if (isNaN(v)) v = 0;
+            v = Math.max(0, Math.min(maxScore, v));
+            onChange(v);
           }}
           className={cn(
             'w-16 h-10 rounded-xl border text-center font-black text-lg transition-colors bg-background',
@@ -433,7 +507,7 @@ function CriterionRow({
 
         {/* Score / Max */}
         <span className="text-xs text-muted-foreground w-10 text-right shrink-0">
-          / {criterion.maxScore}
+          / {maxScore}
         </span>
       </div>
 

@@ -16,6 +16,67 @@ import {
 import { cn } from '@/shared/lib/utils';
 import { toast } from 'sonner';
 
+function ProjectScoreBreakdown({ projectId }: { projectId: string }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin', 'project-scores', projectId],
+    queryFn: () => adminApi.getProjectScoresDetails(projectId),
+  });
+
+  if (isLoading) return <div className="text-sm text-muted-foreground animate-pulse mt-4">Завантаження оцінок...</div>;
+  
+  const scores = data?.scores || [];
+  if (scores.length === 0) return <div className="text-sm text-muted-foreground italic mt-4 border-t pt-4">Ще немає оцінок від суддів.</div>;
+
+  // Group by judge
+  const byJudge = scores.reduce((acc: any, s: any) => {
+    const jId = s.judgeId;
+    if (!acc[jId]) acc[jId] = { judge: s.judge, scores: [], total: 0 };
+    acc[jId].scores.push(s);
+    acc[jId].total += Number(s.scoreValue);
+    return acc;
+  }, {});
+
+  return (
+    <div className="mt-6 border-t pt-6 space-y-4">
+      <h3 className="font-black text-sm uppercase tracking-widest text-muted-foreground">Оцінки суддів ({Object.keys(byJudge).length})</h3>
+      <div className="space-y-4">
+        {Object.values(byJudge).map((j: any) => (
+          <div key={j.judge.id} className="p-4 rounded-xl border bg-muted/10 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-bold text-sm">{j.judge?.fullName || 'Невідомий суддя'}</p>
+                <p className="text-xs text-muted-foreground">{j.judge?.email}</p>
+              </div>
+              <div className="text-right">
+                <span className="text-lg font-black text-primary">{j.total}</span>
+                <span className="text-xs text-muted-foreground ml-1">балів</span>
+              </div>
+            </div>
+            
+            <div className="text-xs grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+              {j.scores.map((s: any) => (
+                <div key={s.criteriaId} className="flex items-center justify-between bg-background p-2 rounded border">
+                  <span className="truncate mr-2 font-medium" title={s.criteria?.name}>{s.criteria?.name}</span>
+                  <span className="font-black">{s.scoreValue} <span className="text-muted-foreground font-normal">/ {s.criteria?.maxScore}</span></span>
+                </div>
+              ))}
+            </div>
+            
+            {j.scores.some((s: any) => s.comment) && (
+              <div className="mt-3 p-3 bg-primary/5 text-sm rounded-lg border border-primary/10">
+                <p className="text-[10px] uppercase font-bold text-primary/60 mb-1">Коментар судді</p>
+                <p className="italic text-muted-foreground leading-relaxed">
+                  "{j.scores.find((s: any) => s.comment)?.comment}"
+                </p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export const Route = createFileRoute('/_protected/admin/projects')({
   component: AdminProjectsPage,
 });
@@ -243,6 +304,8 @@ function AdminProjectsPage() {
                 ))}
               </div>
             )}
+
+            {viewProject?.id && <ProjectScoreBreakdown projectId={viewProject.id} />}
           </div>
           <DialogFooter className="px-6 pb-6 border-t pt-4">
             <Button variant="secondary" onClick={() => setViewProject(null)}>Закрити</Button>

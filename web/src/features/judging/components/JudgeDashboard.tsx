@@ -175,7 +175,7 @@ export function JudgeDashboard() {
                     <span>Оцінено</span>
                     <Badge className="text-[9px] h-4 px-1.5 bg-emerald-100 text-emerald-800">{scoredProjects.length}</Badge>
                   </div>
-                  <div className="opacity-60">
+                  <div className="opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300">
                     {scoredProjects.map(p => (
                       <ProjectListItem
                         key={p.id}

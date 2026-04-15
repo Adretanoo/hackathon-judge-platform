@@ -158,6 +158,11 @@ export const adminApi = {
     return data.data;
   },
 
+  getProjectScoresDetails: async (projectId: string) => {
+    const { data } = await authClient.get(`/projects/${projectId}/scores`);
+    return data.data;
+  },
+
   // ─── Conflicts (Admin) ────────────────────────────────────────────────────────
   listConflicts: async (hackathonId: string) => {
     const { data } = await authClient.get(`/hackathons/${hackathonId}/conflicts`);

@@ -18,7 +18,7 @@ export class ScoreService {
     });
 
     if (!project) throw new NotFoundError('Project not found');
-    if (project.status !== 'SUBMITTED' && project.status !== 'UNDER_REVIEW') {
+    if (project.status !== 'SUBMITTED' && project.status !== 'UNDER_REVIEW' && project.status !== 'ACCEPTED') {
       throw new BadRequestError('Project is not ready for judging or judging is closed.');
     }
 
@@ -151,7 +151,10 @@ export class ScoreService {
 
     const scores = await this.app.prisma.score.findMany({
       where: whereClause,
-      include: { criteria: true },
+      include: { 
+        criteria: true,
+        judge: { select: { id: true, fullName: true, email: true } },
+      },
     });
 
     if (!scores.length) {

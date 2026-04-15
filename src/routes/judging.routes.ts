@@ -4,7 +4,8 @@ import { hasRole } from '../middleware/auth';
 import {
   listJudgingProjectsHandler,
   listJudgingHackathonsHandler,
-  getJudgingStatsHandler
+  getJudgingStatsHandler,
+  autoEvaluateProjectHandler
 } from '../controllers/judging.controller';
 
 export async function judgingRoutes(app: FastifyInstance): Promise<void> {
@@ -55,5 +56,28 @@ export async function judgingRoutes(app: FastifyInstance): Promise<void> {
       preHandler: [app.authenticate]
     },
     getJudgingStatsHandler as any
+  );
+
+  app.post(
+    '/projects/:projectId/auto-eval',
+    {
+      schema: {
+        tags: ['Judging'],
+        summary: 'Automatically evaluate a project using AI',
+        security: [{ BearerAuth: [] }],
+        params: {
+          type: 'object',
+          required: ['projectId'],
+          properties: {
+            projectId: { type: 'string' }
+          }
+        }
+      },
+      preHandler: [
+        app.authenticate,
+        hasRole([RoleName.JUDGE, RoleName.ORGANIZER, RoleName.GLOBAL_ADMIN])
+      ]
+    },
+    autoEvaluateProjectHandler as any
   );
 }
