@@ -42,9 +42,11 @@ export default fp(async (app) => {
       cors: {
         origin: env.CORS_ORIGIN,
         credentials: true,
+        methods: ["GET", "POST"]
       },
       ...(ioAdapter ? { adapter: ioAdapter } : {}),
       transports: ['websocket', 'polling'],
+      allowEIO3: true,
     });
   } catch (err: any) {
     app.log.warn(`⚠️  Socket.IO RedisAdapter failed (${err.message}). Falling back to in-memory adapter.`);
@@ -52,8 +54,10 @@ export default fp(async (app) => {
       cors: {
         origin: env.CORS_ORIGIN,
         credentials: true,
+        methods: ["GET", "POST"]
       },
       transports: ['websocket', 'polling'],
+      allowEIO3: true,
     });
   }
 

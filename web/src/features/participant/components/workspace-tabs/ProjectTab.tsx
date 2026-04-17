@@ -30,6 +30,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
 export function ProjectTab({ team, project, onUpdated }: ProjectTabProps) {
   const queryClient = useQueryClient();
   const isSubmitted = project?.status === 'SUBMITTED' || project?.status === 'UNDER_REVIEW' || project?.status === 'REVIEWED' || project?.status === 'WINNER';
+  const isLocked = project?.status === 'UNDER_REVIEW' || project?.status === 'REVIEWED' || project?.status === 'WINNER';
 
   const [form, setForm] = useState({
     title:       project?.title       ?? '',
@@ -43,10 +44,10 @@ export function ProjectTab({ team, project, onUpdated }: ProjectTabProps) {
 
   // Auto-save every 30s
   useEffect(() => {
-    if (!isDirty || isSubmitted) return;
+    if (!isDirty || isLocked) return;
     const t = setTimeout(() => project ? saveDraftMutation.mutate() : null, 30_000);
     return () => clearTimeout(t);
-  }, [isDirty, form, isSubmitted]);
+  }, [isDirty, form, isLocked]);
 
   const update = (field: string, value: string) => {
     setForm(f => ({ ...f, [field]: value }));
@@ -84,10 +85,10 @@ export function ProjectTab({ team, project, onUpdated }: ProjectTabProps) {
     onSuccess: () => {
       setIsDirty(false);
       setLastSaved(new Date());
-      toast.success('Чернетку збережено', { duration: 2000 });
+      toast.success('Проєкт оновлено', { duration: 2000 });
       onUpdated();
     },
-    onError: () => toast.error('Помилка при збереженні чернетки'),
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? 'Помилка при оновленні'),
   });
 
   // ─── Submit ───────────────────────────────────────────────────────────────
@@ -96,7 +97,9 @@ export function ProjectTab({ team, project, onUpdated }: ProjectTabProps) {
       // Save latest data first, then change status to SUBMITTED
       if (project) {
         await projectApi.update(project.id, form);
-        await projectApi.changeStatus(project.id, 'SUBMITTED');
+        if (project.status === 'DRAFT') {
+           await projectApi.changeStatus(project.id, 'SUBMITTED');
+        }
       } else {
         const created = await projectApi.create({ ...form, teamId: team.id });
         await projectApi.changeStatus(created.id, 'SUBMITTED');
@@ -110,6 +113,17 @@ export function ProjectTab({ team, project, onUpdated }: ProjectTabProps) {
     onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? 'Помилка при поданні'),
   });
 
+  // ─── Unsubmit ─────────────────────────────────────────────────────────────
+  const unsubmitMutation = useMutation({
+    mutationFn: () => projectApi.changeStatus(project!.id, 'DRAFT'),
+    onSuccess: () => {
+      toast.info('Подання скасовано', { description: 'Проєкт знову в статусі чернетки.' });
+      onUpdated();
+      queryClient.invalidateQueries({ queryKey: ['participant', 'status'] });
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.error?.message ?? 'Не вдалося скасувати подання'),
+  });
+
   const isSaving = createMutation.isPending || saveDraftMutation.isPending;
 
   return (
@@ -119,7 +133,8 @@ export function ProjectTab({ team, project, onUpdated }: ProjectTabProps) {
         <div className={cn('flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-bold', isSubmitted ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-muted/30')}>
           {STATUS_CONFIG[project.status]?.icon}
           {STATUS_CONFIG[project.status]?.label ?? project.status}
-          {isSubmitted && <span className="text-xs font-normal ml-auto text-muted-foreground">Редагування заблоковано</span>}
+          {isLocked && <span className="text-xs font-normal ml-auto text-muted-foreground">Редагування заблоковано (в процесі оцінювання)</span>}
+          {project.status === 'SUBMITTED' && <span className="text-[10px] font-normal px-2 py-0.5 bg-blue-100 rounded-full ml-auto uppercase tracking-tighter">Подано</span>}
         </div>
       )}
 
@@ -138,7 +153,7 @@ export function ProjectTab({ team, project, onUpdated }: ProjectTabProps) {
                 placeholder="EcoAI — розумний моніторинг лісів"
                 value={form.title}
                 onChange={e => update('title', e.target.value)}
-                disabled={isSubmitted}
+                disabled={isLocked}
                 className="rounded-xl"
               />
             </div>
@@ -149,7 +164,7 @@ export function ProjectTab({ team, project, onUpdated }: ProjectTabProps) {
                 placeholder="Опишіть ваш проєкт: яку проблему вирішує, яке рішення пропонує..."
                 value={form.description}
                 onChange={e => update('description', e.target.value)}
-                disabled={isSubmitted}
+                disabled={isLocked}
                 className="rounded-xl resize-none h-32"
               />
             </div>
@@ -163,7 +178,7 @@ export function ProjectTab({ team, project, onUpdated }: ProjectTabProps) {
                   placeholder="https://github.com/..."
                   value={form.repoUrl}
                   onChange={e => update('repoUrl', e.target.value)}
-                  disabled={isSubmitted}
+                  disabled={isLocked}
                   className="rounded-xl"
                   type="url"
                 />
@@ -176,7 +191,7 @@ export function ProjectTab({ team, project, onUpdated }: ProjectTabProps) {
                   placeholder="https://eco-ai.vercel.app"
                   value={form.demoUrl}
                   onChange={e => update('demoUrl', e.target.value)}
-                  disabled={isSubmitted}
+                  disabled={isLocked}
                   className="rounded-xl"
                   type="url"
                 />
@@ -205,26 +220,41 @@ export function ProjectTab({ team, project, onUpdated }: ProjectTabProps) {
       </Card>
 
       {/* Action Buttons */}
-      {!isSubmitted && (
+      {!isLocked && (
         <div className="flex items-center justify-between gap-3 flex-wrap">
-          <Button
-            variant="outline"
-            className="rounded-xl gap-2"
-            disabled={!isDirty || isSaving}
-            onClick={() => project ? saveDraftMutation.mutate() : createMutation.mutate()}
-          >
-            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            Зберегти чернетку
-          </Button>
+          <div className="flex gap-3">
+             <Button
+                variant="outline"
+                className="rounded-xl gap-2"
+                disabled={!isDirty || isSaving}
+                onClick={() => project ? saveDraftMutation.mutate() : createMutation.mutate()}
+              >
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {project?.status === 'SUBMITTED' ? 'Оновити проєкт' : 'Зберегти чернетку'}
+              </Button>
 
-          <Button
-            className="rounded-xl gap-2 font-bold px-6 shadow-sm"
-            disabled={!form.title.trim() || submitMutation.isPending}
-            onClick={() => submitMutation.mutate()}
-          >
-            {submitMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            🚀 Подати проєкт
-          </Button>
+              {project?.status === 'SUBMITTED' && (
+                <Button
+                  variant="ghost"
+                  className="rounded-xl text-destructive hover:bg-destructive/10"
+                  disabled={unsubmitMutation.isPending}
+                  onClick={() => unsubmitMutation.mutate()}
+                >
+                  Скасувати подання
+                </Button>
+              )}
+          </div>
+
+          {project?.status !== 'SUBMITTED' && (
+            <Button
+              className="rounded-xl gap-2 font-bold px-6 shadow-sm"
+              disabled={!form.title.trim() || submitMutation.isPending}
+              onClick={() => submitMutation.mutate()}
+            >
+              {submitMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              🚀 Подати проєкт
+            </Button>
+          )}
         </div>
       )}
     </div>

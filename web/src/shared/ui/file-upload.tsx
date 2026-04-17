@@ -53,9 +53,10 @@ export function FileUpload({
 
       onChange(data.data.url);
       toast.success('Завантажено успішно!');
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('Помилка завантаження файлу');
+      const msg = err.response?.data?.error?.message || 'Помилка завантаження файлу';
+      toast.error(msg);
     } finally {
       setIsUploading(false);
     }
@@ -78,27 +79,53 @@ export function FileUpload({
   };
 
   if (value) {
+    const isImage = /\.(jpg|jpeg|png|webp|avif|gif|svg)$/i.test(value) || accept.includes('image');
+    const isVideo = /\.(mp4|webm|ogg)$/i.test(value) || accept.includes('video');
+    const isPDF = /\.pdf$/i.test(value) || value.includes('pdf');
+
     return (
-      <div className={cn('relative group rounded-xl border bg-muted/20 overflow-hidden', className)}>
-        {accept.includes('image') ? (
-          <img src={value} alt="Uploaded" className="w-full h-full object-cover" />
+      <div className={cn('relative group rounded-xl border bg-muted/20 overflow-hidden min-h-[140px]', className)}>
+        {isImage ? (
+          <img src={value} alt="Uploaded" className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500" />
+        ) : isVideo ? (
+          <video src={value} className="w-full h-full object-cover" controls />
         ) : (
-          <div className="flex flex-col items-center justify-center h-full p-4">
-            <FileIcon className="h-8 w-8 text-primary mb-2" />
-            <span className="text-xs truncate max-w-[200px]">{value}</span>
+          <div className="flex flex-col items-center justify-center h-full p-6 bg-gradient-to-br from-primary/5 to-primary/10">
+            {isPDF ? (
+              <div className="p-4 bg-white rounded-2xl shadow-sm mb-3">
+                <FileIcon className="h-10 w-10 text-red-500" />
+              </div>
+            ) : (
+              <div className="p-4 bg-white rounded-2xl shadow-sm mb-3">
+                <FileIcon className="h-10 w-10 text-primary" />
+              </div>
+            )}
+            <span className="text-xs font-bold text-center break-all px-4 bg-white/50 backdrop-blur-md rounded-lg py-1 border border-white/20">
+              {value.split('/').pop()}
+            </span>
           </div>
         )}
         
-        {/* Overlay with delete button */}
-        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => onChange('')}
-            className="rounded-xl gap-2 font-bold shadow-lg"
-          >
-            <X className="h-4 w-4" /> Видалити
-          </Button>
+        {/* Glassmorphism Overlay */}
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-[2px] z-10">
+          <div className="flex gap-2 scale-90 group-hover:scale-100 transition-transform">
+            <Button
+              variant="secondary"
+              size="sm"
+              asChild
+              className="rounded-xl font-bold bg-white/90"
+            >
+              <a href={value} target="_blank" rel="noopener noreferrer">Переглянути</a>
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => onChange('')}
+              className="rounded-xl font-bold"
+            >
+              <X className="h-4 w-4" /> Видалити
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -107,9 +134,9 @@ export function FileUpload({
   return (
     <div
       className={cn(
-        'relative flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl transition-all cursor-pointer',
-        isDragging ? 'border-primary bg-primary/5 shadow-inner' : 'border-border hover:border-primary/50 hover:bg-muted/10',
-        isUploading && 'opacity-50 pointer-events-none content-none',
+        'relative flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl transition-all cursor-pointer group',
+        isDragging ? 'border-primary bg-primary/5 shadow-inner scale-[0.99]' : 'border-border hover:border-primary/50 hover:bg-muted/10',
+        isUploading && 'opacity-60 pointer-events-none cursor-wait',
         className
       )}
       onDragEnter={handleDrag}
@@ -127,21 +154,24 @@ export function FileUpload({
       />
       
       {isUploading ? (
-        <div className="flex flex-col items-center gap-2">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm font-bold text-muted-foreground animate-pulse">Завантаження...</p>
+        <div className="flex flex-col items-center gap-3">
+          <div className="relative">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            <div className="absolute inset-0 animate-ping rounded-full bg-primary/20 scale-150" />
+          </div>
+          <p className="text-sm font-black text-primary/80 tracking-tight animate-pulse uppercase">Завантажуємо...</p>
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-2 text-center">
-          <div className="p-3 bg-muted rounded-full">
-            <UploadCloud className="h-6 w-6 text-muted-foreground" />
+        <div className="flex flex-col items-center gap-3 text-center transition-transform group-hover:scale-105 duration-300">
+          <div className="p-4 bg-muted/50 rounded-2xl group-hover:bg-primary/10 transition-colors">
+            <UploadCloud className="h-7 w-7 text-muted-foreground group-hover:text-primary transition-colors" />
           </div>
           <div>
-            <p className="text-sm font-bold text-foreground">
-              Натисніть або перетягніть файл
+            <p className="text-sm font-black text-foreground">
+              Оберіть або перетягніть файл
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Підтримується: {accept} до {maxSizeMB}MB
+            <p className="text-[10px] font-bold text-muted-foreground mt-1.5 uppercase tracking-widest bg-muted rounded-full px-3 py-0.5">
+              {accept.replace(/\*/g, '').split(',').join(' / ')} • до {maxSizeMB}MB
             </p>
           </div>
         </div>

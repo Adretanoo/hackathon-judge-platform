@@ -10,6 +10,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { ZodError } from 'zod';
 import { AppError } from '../utils/errors';
 import { errorResponse } from '../utils/response';
+import { env } from '../config';
 
 /**
  * Error handler plugin.
@@ -59,8 +60,13 @@ export default fp(async function errorHandlerPlugin(app: FastifyInstance) {
 
       // ── Unhandled / unexpected errors ────────────────────────────────────
       request.log.error({ err: error }, 'Unhandled error');
+      
+      const message = env.NODE_ENV === 'development' 
+        ? `Unexpected error: ${error.message}` 
+        : 'An unexpected error occurred';
+
       return reply.status(500).send(
-        errorResponse('INTERNAL_SERVER_ERROR', 'An unexpected error occurred'),
+        errorResponse('INTERNAL_SERVER_ERROR', message),
       );
     },
   );

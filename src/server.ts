@@ -7,7 +7,9 @@
  * @module server
  */
 
+import path from 'node:path';
 import Fastify from 'fastify';
+import fastifyStatic from '@fastify/static';
 import { type ZodTypeProvider } from 'fastify-type-provider-zod';
 import { safeValidatorCompiler, safeSerializerCompiler } from './utils/zod-provider-wrapper';
 import { env } from './config';
@@ -62,6 +64,12 @@ export async function buildApp(): Promise<any> {
   await app.register(corsPlugin);
   await app.register(rateLimitPlugin);
   await app.register(multipartPlugin);
+
+  // Serve static files from public/uploads
+  await app.register(fastifyStatic, {
+    root: path.join(process.cwd(), 'public'),
+    prefix: '/public/', // Files will be at /public/uploads/...
+  });
 
   // ── Database & Cache ────────────────────────────────────────────────────
   await app.register(prismaPlugin);
