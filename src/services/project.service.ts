@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { ProjectStatus } from '@prisma/client';
+import { ProjectStatus, TeamMemberRole } from '@prisma/client';
 import { CreateProjectPayload, UpdateProjectPayload } from '../schemas/project.schema';
 import { NotFoundError, ForbiddenError, BadRequestError } from '../utils/errors';
 
@@ -7,22 +7,31 @@ export class ProjectService {
   constructor(private app: FastifyInstance) {}
 
   /**
-   * Helper: Check if user is legally allowed to modify a project on behalf of a team.
+   * Ensures user is a CAPTAIN of the team (or an ORGANIZER/ADMIN).
+   * Only captains can create or modify projects.
    */
-  private async requireTeamAccess(teamId: string, userId: string): Promise<void> {
+  private async requireCaptainAccess(teamId: string, userId: string): Promise<void> {
     const membership = await this.app.prisma.teamMember.findUnique({
       where: { teamId_userId: { teamId, userId } },
     });
 
-    if (!membership) {
-      // Check if organizer or admin
-      const team = await this.app.prisma.team.findUnique({ where: { id: teamId } });
-      const roles = await this.app.prisma.userRole.findMany({ where: { userId } });
-      const isOrganizer = roles.some(r => r.roleName === 'GLOBAL_ADMIN' || (r.roleName === 'ORGANIZER' && r.hackathonId === team?.hackathonId));
-      
-      if (!isOrganizer) {
+    if (membership?.role === TeamMemberRole.CAPTAIN) {
+      return; // ✅ Captain — allowed
+    }
+
+    // Fallback: allow ORGANIZER/GLOBAL_ADMIN
+    const team = await this.app.prisma.team.findUnique({ where: { id: teamId } });
+    const roles = await this.app.prisma.userRole.findMany({ where: { userId } });
+    const isOrganizer = roles.some(
+      r => r.roleName === 'GLOBAL_ADMIN' ||
+           (r.roleName === 'ORGANIZER' && r.hackathonId === team?.hackathonId)
+    );
+
+    if (!isOrganizer) {
+      if (!membership) {
         throw new ForbiddenError('You are not a member of this team');
       }
+      throw new ForbiddenError('Only the team captain can create or modify the project');
     }
   }
 
@@ -30,7 +39,7 @@ export class ProjectService {
    * Create a new project for a team
    */
   async createProject(userId: string, data: CreateProjectPayload) {
-    await this.requireTeamAccess(data.teamId, userId);
+    await this.requireCaptainAccess(data.teamId, userId);
 
     // Ensure they don't already have a project
     const existingProject = await this.app.prisma.project.findFirst({
@@ -67,7 +76,7 @@ export class ProjectService {
     });
 
     if (!project) throw new NotFoundError('Project not found');
-    await this.requireTeamAccess(project.teamId, userId);
+    await this.requireCaptainAccess(project.teamId, userId);
 
     return await this.app.prisma.project.update({
       where: { id: projectId },
@@ -97,13 +106,28 @@ export class ProjectService {
     if (!project) throw new NotFoundError('Project not found');
 
     if (!hasAdminAccess) {
-      await this.requireTeamAccess(project.teamId, userId);
+      await this.requireCaptainAccess(project.teamId, userId);
       // Only allow team to change status from DRAFT -> SUBMITTED or SUBMITTED -> DRAFT
       if (
         status !== ProjectStatus.SUBMITTED && 
         status !== ProjectStatus.DRAFT
       ) {
         throw new ForbiddenError('Teams can only submit or unsubmit their projects');
+      }
+
+      // If submitting, enforce minTeamSize
+      if (status === ProjectStatus.SUBMITTED) {
+        const teamWithHackathon = await this.app.prisma.team.findUnique({
+          where: { id: project.teamId },
+          include: { 
+            hackathon: true,
+            _count: { select: { members: true } }
+          }
+        });
+
+        if (teamWithHackathon && teamWithHackathon._count.members < teamWithHackathon.hackathon.minTeamSize) {
+          throw new BadRequestError(`Cannot submit project: your team must have at least ${teamWithHackathon.hackathon.minTeamSize} members.`);
+        }
       }
     }
 
@@ -135,7 +159,8 @@ export class ProjectService {
   }
 
   /**
-   * List projects
+   * List projects, with optional filtering by hackathon, team, status, or judge.
+   * When judgeId is present, DISQUALIFIED teams are excluded automatically.
    */
   async listProjects(page: number, limit: number, filters: { teamId?: string; hackathonId?: string; judgeId?: string; status?: ProjectStatus; statuses?: ProjectStatus[] }) {
     const skip = (page - 1) * limit;
@@ -153,22 +178,26 @@ export class ProjectService {
           hackathonId: filters.hackathonId
         }
       });
-      
-      console.log("JudgeAssignments: ", assignments);
 
       if (assignments.length > 0) {
         const trackIds = assignments.map(a => a.trackId).filter(id => id !== null);
         const hasGlobalAssignment = assignments.some(a => a.trackId === null);
 
-        where.team = { hackathonId: filters.hackathonId };
+        // Exclude DISQUALIFIED teams from judging view
+        where.team = { 
+          hackathonId: filters.hackathonId,
+          status: { not: 'DISQUALIFIED' },
+        };
         
         if (!hasGlobalAssignment && trackIds.length > 0) {
           where.team.trackId = { in: trackIds };
         }
       } else {
-        // Fallback for DEV mode
-        console.log("No JudgeAssignments found. DEV Fallback: showing all projects in hackathon");
-        where.team = { hackathonId: filters.hackathonId };
+        // Fallback: show all non-disqualified projects in hackathon
+        where.team = { 
+          hackathonId: filters.hackathonId,
+          status: { not: 'DISQUALIFIED' },
+        };
       }
     } else if (filters.hackathonId) {
       where.team = { hackathonId: filters.hackathonId };
@@ -181,7 +210,7 @@ export class ProjectService {
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
-          team: { select: { hackathonId: true, trackId: true, name: true } },
+          team: { select: { hackathonId: true, trackId: true, name: true, status: true } },
           scores: filters.judgeId ? { where: { judgeId: filters.judgeId } } : false
         }
       }),

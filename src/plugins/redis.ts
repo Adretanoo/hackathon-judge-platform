@@ -17,25 +17,35 @@ export default fp(async (app) => {
 
   const options: any = {
     maxRetriesPerRequest: null,
-    retryStrategy: () => null, // Disable completely if not available
+    retryStrategy: () => null,           // disable reconnect loop
+    enableOfflineQueue: false,           // don't queue commands when offline
+    lazyConnect: true,                   // don't connect immediately
   };
 
-  const redis = typeof redisConfig === 'string' 
+  const redis = typeof redisConfig === 'string'
     ? new Redis(redisConfig, options)
     : new Redis({ ...redisConfig, ...options });
+
+  // MUST attach error handler BEFORE connect to suppress "missing handler" crash
+  redis.on('error', (err: Error) => {
+    app.log.warn({ err: err.message }, '⚠️  Redis unavailable — caching disabled');
+  });
 
   redis.on('connect', () => {
     app.log.info('✅  Redis connected');
   });
 
-  redis.on('error', (err) => {
-    app.log.error({ err }, '🚨  Redis connection error');
-  });
+  // Attempt connection (non-fatal: server starts even if Redis is down)
+  try {
+    await redis.connect();
+  } catch {
+    app.log.warn('⚠️  Redis connection failed — leaderboard caching disabled, all else works');
+  }
 
   app.decorate('redis', redis);
 
   app.addHook('onClose', async (instance) => {
-    await instance.redis.quit();
+    try { await instance.redis.quit(); } catch { /* ignore */ }
   });
 });
 

@@ -166,12 +166,24 @@ export class TeamService {
   async joinByToken(token: string, userId: string) {
     const invite = await this.app.prisma.teamInvite.findUnique({
       where: { token },
-      include: { team: true },
+      include: { 
+        team: {
+          include: { 
+            hackathon: true,
+            _count: { select: { members: true } }
+          }
+        } 
+      },
     });
 
     if (!invite) throw new NotFoundError('Invite token');
     if (invite.expiresAt < new Date()) throw new BadRequestError('Invite has expired');
     if (invite.usesCount >= invite.maxUses) throw new BadRequestError('Invite usage limit reached');
+
+    // Verify team size limits
+    if (invite.team._count.members >= invite.team.hackathon.maxTeamSize) {
+      throw new BadRequestError('Team has reached the maximum allowed members');
+    }
 
     // Check if user is already in a team for this hackathon
     const existingMembership = await this.app.prisma.teamMember.findFirst({
@@ -359,6 +371,48 @@ export class TeamService {
       items: roles.map(r => r.user), 
       meta: buildPaginationMeta(total, page, limit) 
     };
+  }
+
+  /**
+   * Disqualify a team.
+   * Only the ORGANIZER of the hackathon (or GLOBAL_ADMIN) can perform this action.
+   * Sets team.status = DISQUALIFIED so the team is excluded from judging and leaderboard.
+   */
+  async disqualifyTeam(teamId: string, callerId: string) {
+    const team = await this.getTeamById(teamId);
+
+    if (team.status === TeamStatus.DISQUALIFIED) {
+      throw new BadRequestError('Team is already disqualified');
+    }
+
+    // Verify caller is ORGANIZER of this hackathon or GLOBAL_ADMIN
+    const callerRole = await this.app.prisma.userRole.findFirst({
+      where: {
+        userId: callerId,
+        roleName: { in: [RoleName.ORGANIZER, RoleName.GLOBAL_ADMIN] },
+        OR: [
+          { hackathonId: team.hackathonId },
+          { hackathonId: null, roleName: RoleName.GLOBAL_ADMIN },
+        ],
+      },
+    });
+
+    // Also allow direct organizer (via organizerId)
+    const hackathon = await this.app.prisma.hackathon.findUnique({
+      where: { id: team.hackathonId },
+      select: { organizerId: true },
+    });
+
+    const isOrganizer = !!callerRole || hackathon?.organizerId === callerId;
+
+    if (!isOrganizer) {
+      throw new ForbiddenError('Only the hackathon organizer can disqualify teams');
+    }
+
+    return this.app.prisma.team.update({
+      where: { id: teamId },
+      data: { status: TeamStatus.DISQUALIFIED },
+    });
   }
 
   private async ensureCaptain(teamId: string, userId: string) {

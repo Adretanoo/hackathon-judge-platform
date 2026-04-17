@@ -78,6 +78,15 @@ export const hackathonApi = {
     return Array.isArray(data.data) ? { items: data.data, ...(data.meta || {}) } : data.data;
   },
 
+  /**
+   * Returns only hackathons where the current user is the organizer.
+   * Calls GET /hackathons/my (protected endpoint).
+   */
+  listMine: async (params?: { page?: number; limit?: number; search?: string }) => {
+    const { data } = await authClient.get(`${API_BASE}/my`, { params });
+    return Array.isArray(data.data) ? { items: data.data, ...(data.meta || {}) } : data.data;
+  },
+
   getById: async (id: string) => {
     const { data } = await authClient.get(`${API_BASE}/${id}`);
     return data.data;
@@ -95,6 +104,15 @@ export const hackathonApi = {
 
   changeStatus: async (id: string, status: HackathonStatus) => {
     const { data } = await authClient.patch(`${API_BASE}/${id}/status`, { status });
+    return data.data;
+  },
+
+  /**
+   * Finalizes a hackathon: validates all projects are scored, sets status = COMPLETED.
+   * Calls PATCH /hackathons/:id/complete
+   */
+  complete: async (id: string) => {
+    const { data } = await authClient.patch(`${API_BASE}/${id}/complete`);
     return data.data;
   },
 

@@ -39,6 +39,27 @@ export async function getHackathonsHandler(
   return reply.status(200).send(successResponse(result));
 }
 
+/**
+ * GET /hackathons/my
+ * Returns only hackathons organized by the current authenticated user.
+ * Filters via organizerId (direct relation) AND UserRole (for edge cases).
+ */
+export async function getMyHackathonsHandler(
+  request: FastifyRequest<{ Querystring: { page?: number; limit?: number; search?: string } }>,
+  reply: FastifyReply,
+) {
+  const service = new HackathonService(request.server.prisma);
+  const user = request.user as JwtPayload;
+  const { page, limit, search } = request.query;
+  const result = await service.listMyHackathons(
+    user.sub,
+    Number(page) || 1,
+    Number(limit) || 50,
+    search
+  );
+  return reply.status(200).send(successResponse(result));
+}
+
 export async function getHackathonByIdHandler(
   request: FastifyRequest<{ Params: { id: string } }>,
   reply: FastifyReply,
@@ -63,6 +84,21 @@ export async function changeHackathonStatusHandler(
 ) {
   const service = new HackathonService(request.server.prisma);
   const result = await service.changeStatus(request.params.id, request.body);
+  return reply.status(200).send(successResponse(result));
+}
+
+/**
+ * PATCH /hackathons/:id/complete
+ * Validates that all submitted projects have at least one score,
+ * then sets status = COMPLETED and recalculates leaderboard.
+ */
+export async function completeHackathonHandler(
+  request: FastifyRequest<{ Params: { id: string } }>,
+  reply: FastifyReply,
+) {
+  const service = new HackathonService(request.server.prisma);
+  const user = request.user as JwtPayload;
+  const result = await service.completeHackathon(request.params.id, user.sub);
   return reply.status(200).send(successResponse(result));
 }
 

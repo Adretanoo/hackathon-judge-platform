@@ -184,7 +184,8 @@ function HackathonsPage() {
 function HackathonCard({ hackathon: h, isRegistered, onRegister, registering }: {
   hackathon: any; isRegistered: boolean; onRegister: () => void; registering: boolean;
 }) {
-  const canRegister = h.status === 'REGISTRATION_OPEN' && !isRegistered;
+  const deadlinePassed = h.registrationDeadline && new Date() > new Date(h.registrationDeadline);
+  const canRegister = h.status === 'REGISTRATION_OPEN' && !isRegistered && !deadlinePassed;
 
   return (
     <Card className="overflow-hidden border hover:shadow-lg transition-all duration-200 group flex flex-col">
@@ -234,7 +235,7 @@ function HackathonCard({ hackathon: h, isRegistered, onRegister, registering }: 
               disabled={!canRegister || registering}
               onClick={onRegister}
             >
-              {registering ? 'Реєстрація...' : canRegister ? 'Зареєструватися' : 'Недоступно'}
+              {registering ? 'Реєстрація...' : canRegister ? 'Зареєструватися' : deadlinePassed ? 'Термін завершився' : 'Недоступно'}
               {canRegister && !registering && <ArrowRight className="h-4 w-4" />}
             </Button>
           )}

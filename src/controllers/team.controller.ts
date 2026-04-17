@@ -118,4 +118,14 @@ export class TeamController {
     const { items, meta } = await this.teamService.getFreeAgents(hackathonId, req.query);
     return reply.send(successResponse(items, meta));
   };
+
+  disqualifyTeam = async (
+    req: FastifyRequest<{ Params: { teamId: string } }>,
+    reply: FastifyReply
+  ) => {
+    const { teamId } = req.params;
+    const callerId = (req.user as any).sub;
+    const result = await this.teamService.disqualifyTeam(teamId, callerId);
+    return reply.send(successResponse(result));
+  };
 }

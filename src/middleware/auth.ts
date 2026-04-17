@@ -78,13 +78,25 @@ export function hasRole(
         throw new ForbiddenError(`Missing ${paramName} context for role check`);
       }
 
+      // 1. Check hackathon-scoped UserRole (primary check)
       const userRoleRecord = await request.server.prisma.userRole.findFirst({
         where: { userId: user.sub, hackathonId, roleName: { in: allowedRoles } },
       });
+      if (userRoleRecord) return;
 
-      if (!userRoleRecord) {
-        throw new ForbiddenError('Insufficient permissions for this hackathon context');
+      // 2. Fallback: if user is the direct organizer of this hackathon (via organizerId),
+      //    AND ORGANIZER is in the allowed roles — grant access.
+      //    This handles the case where an organizer creates a hackathon but hasn't yet
+      //    received a hackathon-scoped UserRole entry (race condition or legacy data).
+      if (allowedRoles.includes(RoleName.ORGANIZER)) {
+        const hackathon = await request.server.prisma.hackathon.findUnique({
+          where: { id: hackathonId },
+          select: { organizerId: true },
+        });
+        if (hackathon?.organizerId === user.sub) return;
       }
+
+      throw new ForbiddenError('Insufficient permissions for this hackathon context');
     }
   };
 }

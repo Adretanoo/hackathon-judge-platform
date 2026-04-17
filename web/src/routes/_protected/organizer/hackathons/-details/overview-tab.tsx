@@ -19,6 +19,7 @@ import {
   ArrowRight,
   ChevronDown,
   Loader2,
+  CheckCircle2,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -113,12 +114,38 @@ export function OverviewTab({ hackathon }: OverviewTabProps) {
     onSuccess: (updated) => {
       toast.success(`Статус змінено на «${STATUS_LABELS[updated.status]}»`);
       queryClient.invalidateQueries({ queryKey: ['hackathon', hackathon.id] });
-      queryClient.invalidateQueries({ queryKey: ['hackathons', 'organizer'] });
+      queryClient.invalidateQueries({ queryKey: ['hackathons', 'my'] });
     },
     onError: (err: any) =>
       toast.error(err.response?.data?.error?.message || 'Не вдалося змінити статус'),
     onSettled: () => setStatusChanging(false),
   });
+
+  const completeMutation = useMutation({
+    mutationFn: () => hackathonApi.complete(hackathon.id),
+    onSuccess: () => {
+      toast.success('🏆 Хакатон успішно завершено! Результати зафіксовано.');
+      queryClient.invalidateQueries({ queryKey: ['hackathon', hackathon.id] });
+      queryClient.invalidateQueries({ queryKey: ['hackathons', 'my'] });
+    },
+    onError: (err: any) =>
+      toast.error(
+        err.response?.data?.error?.message ||
+        'Не вдалося завершити хакатон. Переконайтеся, що всі проєкти оцінено.'
+      ),
+  });
+
+  const handleComplete = () => {
+    if (
+      window.confirm(
+        'Ви впевнені, що хочете завершити хакатон? ' +
+        'Усі проєкти мають бути оцінені. Цю дію не можна скасувати.'
+      )
+    ) {
+      completeMutation.mutate();
+    }
+  };
+
 
   const allowedNextStatuses = STATUS_TRANSITIONS[hackathon.status] ?? [];
 
@@ -189,6 +216,23 @@ export function OverviewTab({ hackathon }: OverviewTabProps) {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
+            )}
+
+            {/* Complete Hackathon button — visible only in JUDGING state */}
+            {hackathon.status === 'JUDGING' && (
+              <Button
+                size="sm"
+                className="gap-2 font-bold rounded-xl shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20"
+                onClick={handleComplete}
+                disabled={completeMutation.isPending}
+              >
+                {completeMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4" />
+                )}
+                Завершити хакатон
+              </Button>
             )}
           </CardContent>
         </Card>

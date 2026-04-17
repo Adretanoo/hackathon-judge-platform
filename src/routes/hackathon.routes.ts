@@ -9,9 +9,11 @@ import { RoleName } from '@prisma/client';
 import {
   createHackathonHandler,
   getHackathonsHandler,
+  getMyHackathonsHandler,
   getHackathonByIdHandler,
   updateHackathonHandler,
   changeHackathonStatusHandler,
+  completeHackathonHandler,
   createStageHandler,
   updateStageHandler,
   deleteStageHandler,
@@ -86,6 +88,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         summary: 'Create a new Hackathon',
         description: 'Only GLOBAL_ADMIN or ORGANIZER global roles can create.',
         security: [{ BearerAuth: [] }],
+        body: createHackathonSchema,
         response: {
           201: genericSuccessSchema,
           400: errorSchema,
@@ -96,12 +99,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         hasRole([RoleName.GLOBAL_ADMIN, RoleName.ORGANIZER], { context: 'global' }),
       ],
     },
-    (req, reply) => {
-      // Must manually parse body due to Fastify lack of easy generic TS mapping 
-      // without TypeProviders, or we can just rely on the controller.
-      req.body = createHackathonSchema.parse(req.body);
-      return createHackathonHandler(req as any, reply);
-    }
+    createHackathonHandler as any
   );
 
   app.get(
@@ -114,6 +112,20 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
       },
     },
     getHackathonsHandler as any
+  );
+
+  app.get(
+    '/my',
+    {
+      schema: {
+        tags: ['Hackathons'],
+        summary: 'List my hackathons',
+        security: [{ BearerAuth: [] }],
+        response: { 200: genericSuccessSchema },
+      },
+      preHandler: [app.authenticate],
+    },
+    getMyHackathonsHandler as any
   );
 
   app.get(
@@ -135,6 +147,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         tags: ['Hackathons'],
         summary: 'Update a Hackathon',
         security: [{ BearerAuth: [] }],
+        body: updateHackathonSchema,
         response: { 200: genericSuccessSchema, 404: errorSchema },
       },
       preHandler: [
@@ -142,10 +155,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         hasRole([RoleName.ORGANIZER], { context: 'hackathon', paramName: 'id' }),
       ],
     },
-    (req, reply) => {
-      req.body = updateHackathonSchema.parse(req.body);
-      return updateHackathonHandler(req as any, reply);
-    }
+    updateHackathonHandler as any
   );
 
   app.patch(
@@ -155,6 +165,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         tags: ['Hackathons'],
         summary: 'Change Hackathon status',
         security: [{ BearerAuth: [] }],
+        body: changeHackathonStatusSchema,
         response: { 200: genericSuccessSchema, 404: errorSchema },
       },
       preHandler: [
@@ -162,10 +173,24 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         hasRole([RoleName.ORGANIZER, RoleName.GLOBAL_ADMIN], { context: 'hackathon', paramName: 'id' }),
       ],
     },
-    (req, reply) => {
-      req.body = changeHackathonStatusSchema.parse(req.body);
-      return changeHackathonStatusHandler(req as any, reply);
-    }
+    changeHackathonStatusHandler as any
+  );
+
+  app.patch(
+    '/:id/complete',
+    {
+      schema: {
+        tags: ['Hackathons'],
+        summary: 'Complete a Hackathon',
+        security: [{ BearerAuth: [] }],
+        response: { 200: genericSuccessSchema, 404: errorSchema },
+      },
+      preHandler: [
+        app.authenticate,
+        hasRole([RoleName.ORGANIZER, RoleName.GLOBAL_ADMIN], { context: 'hackathon', paramName: 'id' }),
+      ],
+    },
+    completeHackathonHandler as any
   );
 
   // ─── Stages ──────────────────────────────────────────────────────────────────
@@ -177,6 +202,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         tags: ['Hackathons'],
         summary: 'Add a stage',
         security: [{ BearerAuth: [] }],
+        body: createStageSchema,
         response: { 201: genericSuccessSchema, 400: errorSchema },
       },
       preHandler: [
@@ -184,10 +210,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         hasRole([RoleName.ORGANIZER], { context: 'hackathon', paramName: 'id' }),
       ],
     },
-    (req, reply) => {
-      req.body = createStageSchema.parse(req.body);
-      return createStageHandler(req as any, reply);
-    }
+    createStageHandler as any
   );
 
   app.put(
@@ -197,6 +220,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         tags: ['Hackathons'],
         summary: 'Update a stage',
         security: [{ BearerAuth: [] }],
+        body: updateStageSchema,
         response: { 200: genericSuccessSchema, 404: errorSchema },
       },
       preHandler: [
@@ -204,10 +228,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         hasRole([RoleName.ORGANIZER], { context: 'hackathon', paramName: 'id' }),
       ],
     },
-    (req, reply) => {
-      req.body = updateStageSchema.parse(req.body);
-      return updateStageHandler(req as any, reply);
-    }
+    updateStageHandler as any
   );
 
   app.delete(
@@ -236,6 +257,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         tags: ['Hackathons'],
         summary: 'Add a track',
         security: [{ BearerAuth: [] }],
+        body: createTrackSchema,
         response: { 201: genericSuccessSchema, 400: errorSchema },
       },
       preHandler: [
@@ -243,10 +265,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         hasRole([RoleName.ORGANIZER], { context: 'hackathon', paramName: 'id' }),
       ],
     },
-    (req, reply) => {
-      req.body = createTrackSchema.parse(req.body);
-      return createTrackHandler(req as any, reply);
-    }
+    createTrackHandler as any
   );
 
   app.put(
@@ -256,6 +275,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         tags: ['Hackathons'],
         summary: 'Update a track',
         security: [{ BearerAuth: [] }],
+        body: updateTrackSchema,
         response: { 200: genericSuccessSchema, 404: errorSchema },
       },
       preHandler: [
@@ -263,10 +283,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         hasRole([RoleName.ORGANIZER], { context: 'hackathon', paramName: 'id' }),
       ],
     },
-    (req, reply) => {
-      req.body = updateTrackSchema.parse(req.body);
-      return updateTrackHandler(req as any, reply);
-    }
+    updateTrackHandler as any
   );
 
   app.delete(
@@ -295,6 +312,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         tags: ['Hackathons'],
         summary: 'Add an award',
         security: [{ BearerAuth: [] }],
+        body: createAwardSchema,
         response: { 201: genericSuccessSchema, 400: errorSchema },
       },
       preHandler: [
@@ -302,10 +320,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         hasRole([RoleName.ORGANIZER], { context: 'hackathon', paramName: 'id' }),
       ],
     },
-    (req, reply) => {
-      req.body = createAwardSchema.parse(req.body);
-      return createAwardHandler(req as any, reply);
-    }
+    createAwardHandler as any
   );
 
   app.put(
@@ -315,6 +330,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         tags: ['Hackathons'],
         summary: 'Update an award',
         security: [{ BearerAuth: [] }],
+        body: updateAwardSchema,
         response: { 200: genericSuccessSchema, 404: errorSchema },
       },
       preHandler: [
@@ -322,10 +338,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         hasRole([RoleName.ORGANIZER], { context: 'hackathon', paramName: 'id' }),
       ],
     },
-    (req, reply) => {
-      req.body = updateAwardSchema.parse(req.body);
-      return updateAwardHandler(req as any, reply);
-    }
+    updateAwardHandler as any
   );
 
   app.delete(
@@ -354,6 +367,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         tags: ['Hackathons', 'Criteria'],
         summary: 'Add a judging criteria to a hackathon track',
         security: [{ BearerAuth: [] }],
+        body: createCriteriaSchema,
         response: { 201: genericSuccessSchema, 400: errorSchema },
       },
       preHandler: [
@@ -361,10 +375,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         hasRole([RoleName.ORGANIZER, RoleName.GLOBAL_ADMIN], { context: 'hackathon', paramName: 'id' }),
       ],
     },
-    (req, reply) => {
-      req.body = createCriteriaSchema.parse(req.body);
-      return createCriteriaHandler(req as any, reply);
-    }
+    createCriteriaHandler as any
   );
 
   app.get(
@@ -386,6 +397,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         tags: ['Hackathons', 'Criteria'],
         summary: 'Update a judging criterion',
         security: [{ BearerAuth: [] }],
+        body: updateCriteriaSchema,
         response: { 200: genericSuccessSchema, 404: errorSchema },
       },
       preHandler: [
@@ -393,10 +405,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         hasRole([RoleName.ORGANIZER, RoleName.GLOBAL_ADMIN], { context: 'hackathon', paramName: 'id' }),
       ],
     },
-    (req, reply) => {
-      req.body = updateCriteriaSchema.parse(req.body);
-      return updateCriteriaHandler(req as any, reply);
-    }
+    updateCriteriaHandler as any
   );
 
   app.delete(
@@ -456,6 +465,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         tags: ['Hackathons', 'Judges'],
         summary: 'Assign a judge to a hackathon or track',
         security: [{ BearerAuth: [] }],
+        body: assignJudgeSchema,
         response: { 201: genericSuccessSchema, 400: errorSchema, 409: errorSchema },
       },
       preHandler: [
@@ -463,10 +473,7 @@ export async function hackathonRoutes(app: FastifyInstance): Promise<void> {
         hasRole([RoleName.ORGANIZER, RoleName.GLOBAL_ADMIN], { context: 'hackathon', paramName: 'id' })
       ],
     },
-    (req, reply) => {
-      req.body = assignJudgeSchema.parse(req.body);
-      return assignJudgeHandler(req as any, reply);
-    }
+    assignJudgeHandler as any
   );
 
   app.delete(

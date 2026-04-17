@@ -108,6 +108,7 @@ export function EditHackathonModal({ isOpen, onClose, hackathon }: EditHackathon
 
       // Ensure empty strings don't crash backend URL or string validation
       if (!payload.websiteUrl?.trim()) delete payload.websiteUrl;
+      if (!payload.bannerUrl?.trim()) delete payload.bannerUrl;
       if (!payload.subtitle?.trim()) delete payload.subtitle;
       if (!payload.description?.trim()) delete payload.description;
       if (!payload.location?.trim()) delete payload.location;

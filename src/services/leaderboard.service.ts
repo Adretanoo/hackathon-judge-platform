@@ -48,14 +48,15 @@ export class LeaderboardService {
 
     if (!hackathon) throw new NotFoundError('Hackathon not found');
 
-    // Fetch projects and their scores — include ALL statuses so drafts show up too
+    // Fetch projects and their scores — exclude DISQUALIFIED teams
     const projects = await this.app.prisma.project.findMany({
       where: {
         team: {
           hackathonId,
+          status: { not: 'DISQUALIFIED' },
           ...(trackId && { trackId }),
         },
-        status: { in: ['SUBMITTED', 'UNDER_REVIEW', 'ACCEPTED', 'DRAFT'] },
+        status: { in: ['SUBMITTED', 'UNDER_REVIEW', 'ACCEPTED'] },
       },
       include: {
         team: {

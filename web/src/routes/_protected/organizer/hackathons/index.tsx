@@ -24,8 +24,8 @@ export const Route = createFileRoute('/_protected/organizer/hackathons/')({
 
 function HackathonsListPage() {
   const { data, isLoading } = useQuery({
-    queryKey: ['hackathons', 'organizer'],
-    queryFn: () => hackathonApi.list({ limit: 50 }),
+    queryKey: ['hackathons', 'my'],
+    queryFn: () => hackathonApi.listMine(),
   });
 
   const getStatusBadge = (status: HackathonStatus) => {

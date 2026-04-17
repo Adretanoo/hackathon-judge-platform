@@ -173,4 +173,22 @@ export async function teamRoutes(fastify: FastifyInstance) {
     },
     controller.removeMember as any
   );
+
+  /**
+   * PATCH /teams/:teamId/disqualify
+   * Disqualifies a team — only ORGANIZER of the hackathon that contains this team.
+   * Sets team.status = DISQUALIFIED.
+   */
+  app.patch(
+    '/teams/:teamId/disqualify',
+    {
+      preHandler: [app.authenticate],
+      schema: {
+        tags: ['Teams'],
+        summary: 'Disqualify a team (organizer only)',
+        params: teamParamsSchema,
+      },
+    },
+    controller.disqualifyTeam as any
+  );
 }

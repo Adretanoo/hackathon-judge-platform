@@ -49,6 +49,14 @@ export default fp(async function errorHandlerPlugin(app: FastifyInstance) {
         );
       }
 
+      // ── Prisma Errors ───────────────────────────────────────────────────
+      if (error.name === 'PrismaClientKnownRequestError') {
+        request.log.warn({ err: error }, 'Prisma Database Error');
+        return reply.status(400).send(
+          errorResponse('BAD_REQUEST', 'Database operation failed due to a constraint or invalid reference.')
+        );
+      }
+
       // ── Unhandled / unexpected errors ────────────────────────────────────
       request.log.error({ err: error }, 'Unhandled error');
       return reply.status(500).send(

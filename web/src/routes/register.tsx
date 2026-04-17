@@ -26,18 +26,19 @@ function RegisterPage() {
   const { login, isAuthenticated, user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
-  // If already authenticated, redirect to appropriate panel
-  if (isAuthenticated && user) {
-    const dest = user.role === 'GLOBAL_ADMIN' ? '/admin' : '/dashboard';
-    return <Navigate to={dest} replace />;
-  }
-
+  // Call all hooks before early returns!
   const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(RegisterPayloadSchema),
     defaultValues: {
       role: 'PARTICIPANT',
     },
   });
+
+  // If already authenticated, redirect to appropriate panel
+  if (isAuthenticated && user) {
+    const dest = user.role === 'GLOBAL_ADMIN' ? '/admin' : '/dashboard';
+    return <Navigate to={dest} replace />;
+  }
 
   const onSubmit = async (data: any) => {
     try {

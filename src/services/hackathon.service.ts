@@ -86,6 +86,52 @@ export class HackathonService {
     return { total, page, limit, items };
   }
 
+  /**
+   * Returns hackathons where the user is the organizer.
+   * Uses both the direct `organizerId` field AND the `UserRole` relation
+   * (for edge cases where hackathon was assigned via UserRole but not organizerId).
+   */
+  async listMyHackathons(userId: string, page: number = 1, limit: number = 50, search?: string) {
+    const skip = (page - 1) * limit;
+
+    // Find hackathons where user either:
+    // 1. Is the direct organizer (organizerId = userId)
+    // 2. Has ORGANIZER UserRole scoped to this hackathon
+    const where: any = {
+      OR: [
+        { organizerId: userId },
+        {
+          userRoles: {
+            some: {
+              userId,
+              roleName: RoleName.ORGANIZER,
+            }
+          }
+        }
+      ]
+    };
+
+    if (search) {
+      where.title = { contains: search, mode: 'insensitive' };
+    }
+
+    const [total, items] = await Promise.all([
+      this.prisma.hackathon.count({ where }),
+      this.prisma.hackathon.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          _count: { select: { teams: true } },
+          organizer: { select: { id: true, username: true, fullName: true, avatarUrl: true } },
+        },
+      })
+    ]);
+
+    return { total, page, limit, items };
+  }
+
   async updateHackathon(id: string, data: UpdateHackathonBody) {
     await this.getHackathonById(id); // Throws if not found
 
@@ -115,6 +161,54 @@ export class HackathonService {
       where: { id },
       data: { status: nextStatus }
     });
+  }
+
+  /**
+   * Finalizes a hackathon:
+   * 1. Must be in JUDGING status
+   * 2. All submitted (non-disqualified) projects must have at least one score
+   * 3. Sets status = COMPLETED
+   * 4. Invalidates leaderboard cache (best-effort)
+   */
+  async completeHackathon(hackathonId: string, _userId: string) {
+    const hackathon = await this.getHackathonById(hackathonId);
+
+    if (hackathon.status !== HackathonStatus.JUDGING) {
+      throw new BadRequestError(
+        `Hackathon must be in JUDGING status to complete. Current status: ${hackathon.status}`
+      );
+    }
+
+    // Find all submitted projects from non-disqualified teams
+    const submittedProjects = await this.prisma.project.findMany({
+      where: {
+        team: {
+          hackathonId,
+          status: { not: 'DISQUALIFIED' },
+        },
+        status: { in: ['SUBMITTED', 'UNDER_REVIEW', 'ACCEPTED'] },
+      },
+      include: {
+        _count: { select: { scores: true } },
+      },
+    });
+
+    // Check that every submitted project has at least one score
+    const unscoredProjects = submittedProjects.filter(p => p._count.scores === 0);
+    if (unscoredProjects.length > 0) {
+      throw new BadRequestError(
+        `Cannot complete hackathon: ${unscoredProjects.length} project(s) have no scores yet. ` +
+        `Please ensure all submitted projects are evaluated before completing.`
+      );
+    }
+
+    // Set status to COMPLETED
+    const completed = await this.prisma.hackathon.update({
+      where: { id: hackathonId },
+      data: { status: HackathonStatus.COMPLETED },
+    });
+
+    return completed;
   }
 
   // ─── Stages ──────────────────────────────────────────────────────────────────

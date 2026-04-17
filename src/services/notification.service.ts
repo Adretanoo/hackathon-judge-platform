@@ -2,6 +2,7 @@
  * @file src/services/notification.service.ts
  * @description In-app notification creation, retrieval, and read-state management.
  * Pushes real-time updates via Socket.io when available.
+ * Redis is used for caching — gracefully falls back to DB-only when Redis is unavailable.
  */
 
 import { FastifyInstance } from 'fastify';
@@ -11,6 +12,11 @@ const UNREAD_CACHE_TTL = 300; // 5 minutes
 
 export class NotificationService {
   constructor(private app: FastifyInstance) {}
+
+  /** Returns true if the Redis client is ready to accept commands. */
+  private get redisAvailable(): boolean {
+    return this.app.redis?.status === 'ready';
+  }
 
   /**
    * Create a notification and push it to the user in real-time.
@@ -39,8 +45,12 @@ export class NotificationService {
         .emit('notification', notification);
     }
 
-    // Invalidate cached unread count
-    await this.app.redis.del(`notifs:unread:${params.userId}`);
+    // Invalidate cached unread count (best-effort — Redis may be down)
+    if (this.redisAvailable) {
+      try {
+        await this.app.redis.del(`notifs:unread:${params.userId}`);
+      } catch { /* ignore cache errors */ }
+    }
 
     return notification;
   }
@@ -79,18 +89,31 @@ export class NotificationService {
   }
 
   /**
-   * Get unread count from Redis cache (fallback to DB).
+   * Get unread count — uses Redis cache when available, falls back to DB.
    */
   async getUnreadCount(userId: string): Promise<number> {
     const cacheKey = `notifs:unread:${userId}`;
-    const cached = await this.app.redis.get(cacheKey);
-    if (cached !== null) return parseInt(cached, 10);
 
+    // Try Redis cache first
+    if (this.redisAvailable) {
+      try {
+        const cached = await this.app.redis.get(cacheKey);
+        if (cached !== null) return parseInt(cached, 10);
+      } catch { /* fall through to DB */ }
+    }
+
+    // DB fallback (always works)
     const count = await this.app.prisma.notification.count({
       where: { userId, isRead: false },
     });
 
-    await this.app.redis.setex(cacheKey, UNREAD_CACHE_TTL, String(count));
+    // Try to cache the result
+    if (this.redisAvailable) {
+      try {
+        await this.app.redis.setex(cacheKey, UNREAD_CACHE_TTL, String(count));
+      } catch { /* ignore */ }
+    }
+
     return count;
   }
 
@@ -103,17 +126,19 @@ export class NotificationService {
     });
 
     if (!notif || notif.userId !== userId) {
-      return null; // silently ignore — no leaking info about other users
+      return null;
     }
 
-    if (notif.isRead) return notif; // already read, skip DB write
+    if (notif.isRead) return notif;
 
     const updated = await this.app.prisma.notification.update({
       where: { id: notificationId },
       data: { isRead: true },
     });
 
-    await this.app.redis.del(`notifs:unread:${userId}`);
+    if (this.redisAvailable) {
+      try { await this.app.redis.del(`notifs:unread:${userId}`); } catch { /* ignore */ }
+    }
     return updated;
   }
 
@@ -125,7 +150,11 @@ export class NotificationService {
       where: { userId, isRead: false },
       data: { isRead: true },
     });
-    await this.app.redis.set(`notifs:unread:${userId}`, '0', 'EX', UNREAD_CACHE_TTL);
+    if (this.redisAvailable) {
+      try {
+        await this.app.redis.set(`notifs:unread:${userId}`, '0', 'EX', UNREAD_CACHE_TTL);
+      } catch { /* ignore */ }
+    }
   }
 
   /**
@@ -138,7 +167,9 @@ export class NotificationService {
     if (!notif || notif.userId !== userId) return null;
 
     await this.app.prisma.notification.delete({ where: { id: notificationId } });
-    await this.app.redis.del(`notifs:unread:${userId}`);
+    if (this.redisAvailable) {
+      try { await this.app.redis.del(`notifs:unread:${userId}`); } catch { /* ignore */ }
+    }
     return { deleted: true };
   }
 }

@@ -5,7 +5,7 @@
 
 import { v2 as cloudinary, UploadApiOptions } from 'cloudinary';
 import { env } from '../config/env';
-import { InternalServerError } from '../utils/errors';
+import { InternalServerError, BadRequestError } from '../utils/errors';
 
 // Configured once at startup
 cloudinary.config({
@@ -21,7 +21,7 @@ export class UploadService {
    */
   async uploadBuffer(buffer: Buffer, folder: string, filename?: string): Promise<string> {
     if (!env.CLOUDINARY_CLOUD_NAME) {
-      throw new InternalServerError('Cloudinary is not configured. File upload disabled.');
+      throw new BadRequestError('Cloudinary is not configured in the backend environment. File upload is disabled.');
     }
 
     const options: UploadApiOptions = {

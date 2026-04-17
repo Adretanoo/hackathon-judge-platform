@@ -86,4 +86,13 @@ export const teamApi = {
     const { data } = await authClient.post(`/teams/${teamId}/transfer-captain`, { newCaptainId });
     return data.data;
   },
+
+  /**
+   * Disqualify a team (organizer only).
+   * Sets team.status = DISQUALIFIED.
+   */
+  disqualify: async (teamId: string) => {
+    const { data } = await authClient.patch(`/teams/${teamId}/disqualify`);
+    return data.data;
+  },
 };
